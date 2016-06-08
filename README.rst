@@ -70,4 +70,4 @@ No release on PyPi yet. Clone the repo.
 Documentation
 =============
 
-https://django-meerkat.readthedocs.org/
+https://meerkat.readthedocs.org/
