@@ -1,0 +1,14 @@
+[paths]
+source =
+   src/meerkat
+   */site-packages/meerkat
+
+[run]
+branch = True
+source = meerkat
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*
