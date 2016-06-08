@@ -15,7 +15,7 @@ Overview
 .. |supported-implementations|
 
 .. |docs| image:: https://readthedocs.io/projects/django-meerkat/badge/?version=latest
-    :target: https://django-meerkat.readthedocs.io/en/latest/
+    :target: https://meerkat.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 .. |travis| image:: https://travis-ci.org/Pawamoy/django-meerkat.svg?branch=master
