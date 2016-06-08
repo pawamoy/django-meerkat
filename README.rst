@@ -14,7 +14,7 @@ Overview
 .. |supported-versions|
 .. |supported-implementations|
 
-.. |docs| image:: https://readthedocs.io/projects/django-meerkat/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/meerkat/badge/?version=latest
     :target: https://meerkat.readthedocs.io/en/latest/
     :alt: Documentation Status
 
