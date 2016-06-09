@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import json
 import re
 from os.path import join
 from django.utils.translation import ugettext as _
@@ -12,7 +11,7 @@ from meerkat.logs.stats import status_codes_stats
 from meerkat.logs.parsers import NginXAccessLogParser
 
 
-# @refreshable
+@refreshable
 def status_codes_chart():
     parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
                                   top_dir=join(settings.BASE_DIR, 'logs'))
