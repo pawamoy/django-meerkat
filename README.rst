@@ -70,4 +70,11 @@ No release on PyPi yet. Clone the repo.
 Documentation
 =============
 
-https://meerkat.readthedocs.org/
+https://meerkat.readthedocs.io/en/latest/
+
+Development
+===========
+
+To run the all tests run::
+
+    tox
