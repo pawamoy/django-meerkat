@@ -1,0 +1,16 @@
+{% extends "suit_dashboard/base.html" %}
+{% load i18n admin_static %}
+
+{% block title %}
+  GenIDA Admin
+{% endblock %}
+
+{% block dashboard_css %}
+  <link href="{% static 'dashboard/main.css' %}">
+{% endblock %}
+
+{% block dashboard_highcharts_js %}
+  <script src="{% static "bower_components/highcharts/highcharts.js" %}"></script>
+  <script src="{% static "bower_components/highcharts/modules/heatmap.js" %}"></script>
+  <script src="{% static "bower_components/highcharts/highcharts-more.js" %}"></script>
+{% endblock %}
