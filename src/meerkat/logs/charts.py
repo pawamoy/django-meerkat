@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import json
 import re
 from os.path import join
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 from django.conf import settings
 from suit_dashboard.decorators import refreshable
 from meerkat.logs.data import STATUS_CODES
@@ -12,7 +12,7 @@ from meerkat.logs.stats import status_codes_stats
 from meerkat.logs.parsers import NginXAccessLogParser
 
 
-@refreshable
+# @refreshable
 def status_codes_chart():
     parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
                                   top_dir=join(settings.BASE_DIR, 'logs'))
@@ -58,6 +58,4 @@ def status_codes_chart():
         }]
     }
 
-    return json.dumps(chart_options)
-
-print('hey')
+    return chart_options

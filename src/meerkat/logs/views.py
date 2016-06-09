@@ -27,20 +27,3 @@ class LogsStatusCodes(LogsMenu):
         {'url': 'admin:nginx_status_codes', 'name': _('Status codes')},
     )
     grid = Grid(Row(Column(BoxLogsLinks(), BoxLogsStatusCodes())))
-
-
-# def blah():
-#     return [
-#         Item('traffic_chart', '', json.dumps(traffic_chart),
-#              display=Item.AS_HIGHCHARTS),
-#         Item(
-#             'status-code-description', _('Descriptions'),
-#             [
-#                 ('%s %s' % (sc, STATUS_CODES[int(sc)]['name']),
-#                  STATUS_CODES[int(sc)]['desc'])
-#                 for sc in sorted(by_status_code.keys())
-#                 ],
-#             display=Item.AS_TABLE,
-#             classes='table-hover'
-#         )
-#     ]

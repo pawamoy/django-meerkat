@@ -518,4 +518,3 @@ STATUS_CODES = {
 
 def get_ip_info(ip):
     return requests.get('http://ipinfo.io/%s' % ip)
-

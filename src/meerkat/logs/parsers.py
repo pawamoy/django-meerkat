@@ -37,9 +37,8 @@ class GenericParser(object):
                     del dirs[i]
 
             for filename in files:
-                filename = os.path.relpath(os.path.join(root, filename))
                 if matcher.match(filename):
-                    matching.append(filename)
+                    matching.append(os.path.relpath(os.path.join(root, filename)))
 
         return matching
 

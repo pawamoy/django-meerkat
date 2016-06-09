@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 from suit_dashboard.box import Box, Item
 from meerkat.logs.charts import status_codes_chart
+from meerkat.logs.data import STATUS_CODES
 
 
 class BoxLogsLinks(Box):
@@ -24,9 +25,13 @@ class BoxLogsStatusCodes(Box):
     def get_title(self):
         return _('Status codes')
 
-    def get_context(self):
-        value = status_codes_chart
+    def get_items(self):
         return [
-            Item(value=value,
-                 display=Item.AS_REFRESHABLE_HIGHCHARTS)
+            Item(value=status_codes_chart(),
+                 display=Item.AS_HIGHCHARTS),
+            Item('status-code-description', _('Descriptions'),
+                 [('%s %s' % (k, v['name']), v['desc'])
+                  for k, v in sorted(STATUS_CODES.items())],
+                 display=Item.AS_TABLE,
+                 classes='table-hover table-striped')
         ]
