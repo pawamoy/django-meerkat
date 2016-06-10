@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+
+from django.conf.urls import include, url
 from django.contrib.admin.sites import AdminSite
-from django.conf.urls import url, include
+
 from suit_dashboard.urls import get_refreshable_urls
+
 from meerkat.logs.views import HomeView, LogsMenu, LogsStatusCodes
 
 

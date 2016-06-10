@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+
 from django.utils.translation import ugettext_lazy as _
+
+from suit_dashboard.layout import Column, Grid, Row
 from suit_dashboard.views import DashboardView
-from suit_dashboard.layout import Grid, Row, Column
+
 from meerkat.logs.boxes import BoxLogsLinks, BoxLogsStatusCodes
 
 

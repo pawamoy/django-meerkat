@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+
 import re
 from os.path import join
-from django.utils.translation import ugettext as _
+
 from django.conf import settings
+from django.utils.translation import ugettext as _
+
 from suit_dashboard.decorators import refreshable
+
 from meerkat.logs.data import STATUS_CODES
-from meerkat.logs.stats import status_codes_stats
 from meerkat.logs.parsers import NginXAccessLogParser
+from meerkat.logs.stats import status_codes_stats
 
 
 @refreshable

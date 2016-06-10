@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import requests
+
 from django.utils.translation import ugettext as _
+
+import requests
+
 
 STATUS_CODES = {
     # 1xx Informational
