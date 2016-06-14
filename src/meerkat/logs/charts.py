@@ -200,12 +200,14 @@ def most_visited_pages_charts():
 
     point_formatter_code = """
         return '<br>%s: <strong>' + this.dis + '</strong>(' +
-            Highcharts.numberFormat(this.dis / this.total * 100, 1) + '%%)' +
-            '<br>%s: <strong>' + this.occ + '</strong> (' +
-            Highcharts.numberFormat(this.occ / this.total * 100, 1)  + '%%)';
+        Highcharts.numberFormat(this.dis / this.total_dis * 100, 1) + '%%)' +
+        '<br>%s: <strong>' + this.occ + '</strong> (' +
+        Highcharts.numberFormat(this.occ / this.total_occ * 100, 1)  + '%%)';
         """ % (_('Distinct URLs'), _('Occurrences'))
 
     occurrences = stats['less_than_10']
+    total_distinct = sum([v['distinct'] for k, v in occurrences])
+    total_occurrences = sum([v['total'] for k, v in occurrences])
     charts.append({
         'chart': {
             'plotBackgroundColor': None,
@@ -237,36 +239,48 @@ def most_visited_pages_charts():
                 'dis': occurrences['project']['distinct'],
                 'y': occurrences['project']['total'],
                 'occ': occurrences['project']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
                 'color': '#AFE4FD'
             }, {
                 'name': _('Valid asset URL'),
                 'dis': occurrences['asset']['distinct'],
                 'y': occurrences['asset']['total'],
                 'occ': occurrences['asset']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
                 'color': '#DBDBDB'
             }, {
                 'name': _('Common but not valid asset URL'),
                 'dis': occurrences['common_asset']['distinct'],
                 'y': occurrences['common_asset']['total'],
                 'occ': occurrences['common_asset']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
                 'color': '#F1F2B6'
             }, {
                 'name': _('Old project URL'),
                 'dis': occurrences['old']['distinct'],
                 'y': occurrences['old']['total'],
                 'occ': occurrences['old']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
                 'color': '#B6B6F2'
             }, {
                 'name': _('False-negative project URL'),
                 'dis': occurrences['false']['distinct'],
                 'y': occurrences['false']['total'],
                 'occ': occurrences['false']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
                 'color': '#9CD8AC'
             }, {
                 'name': _('Suspicious URL (potential attack)'),
                 'dis': occurrences['suspicious']['distinct'],
                 'y': occurrences['suspicious']['total'],
                 'occ': occurrences['suspicious']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
                 'color': '#FFB31A'
             }]
         }]

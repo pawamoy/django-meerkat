@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 from django.core.urlresolvers import Resolver404
 
 
-def url_is_project_url(path, patterns, default=None):
+def url_is_project_url(path, patterns, default='not_a_func'):
     for url in patterns:
         try:
             u = url.resolve(path)
