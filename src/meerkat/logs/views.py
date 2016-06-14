@@ -8,8 +8,8 @@ from suit_dashboard.layout import Column, Grid, Row
 from suit_dashboard.views import DashboardView
 
 from meerkat.logs.boxes import (
-    BoxLogsLinks, BoxLogsStatusCodes, BoxLogsMostVisitedPages,
-    BoxLogsMostVisitedPagesLegend)
+    BoxLogsLinks, BoxLogsMostVisitedPages, BoxLogsMostVisitedPagesLegend,
+    BoxLogsStatusCodes)
 
 
 class HomeView(DashboardView):

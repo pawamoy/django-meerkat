@@ -8,7 +8,7 @@ from django.contrib.admin.sites import AdminSite
 from suit_dashboard.urls import get_refreshable_urls
 
 from meerkat.logs.views import (
-    HomeView, LogsMenu, LogsStatusCodes, LogsMostVisitedPages)
+    HomeView, LogsMenu, LogsMostVisitedPages, LogsStatusCodes)
 
 
 class DashboardSite(AdminSite):

@@ -6,8 +6,8 @@ from collections import Counter
 
 from meerkat.utils.list import distinct
 from meerkat.utils.url import (
-    url_is_asset, url_is_ignored, url_is_project_url, url_is_false_negative,
-    url_is_old)
+    url_is_asset, url_is_false_negative, url_is_ignored, url_is_old,
+    url_is_project_url)
 
 
 def status_codes_stats(logs):

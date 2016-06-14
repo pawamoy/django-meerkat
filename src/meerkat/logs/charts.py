@@ -12,8 +12,8 @@ from suit_dashboard.decorators import refreshable
 
 from meerkat.logs.data import STATUS_CODES
 from meerkat.logs.parsers import NginXAccessLogParser
-from meerkat.logs.stats import status_codes_stats, most_visited_pages_stats
-from meerkat.utils.url import url_is_asset, url_is_old, url_is_false_negative
+from meerkat.logs.stats import most_visited_pages_stats, status_codes_stats
+from meerkat.utils.url import url_is_asset, url_is_false_negative, url_is_old
 
 
 @refreshable
