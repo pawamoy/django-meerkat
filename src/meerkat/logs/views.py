@@ -7,7 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 from suit_dashboard.layout import Column, Grid, Row
 from suit_dashboard.views import DashboardView
 
-from meerkat.logs.boxes import BoxLogsLinks, BoxLogsStatusCodes
+from meerkat.logs.boxes import (
+    BoxLogsLinks, BoxLogsStatusCodes, BoxLogsMostVisitedPages,
+    BoxLogsMostVisitedPagesLegend)
 
 
 class HomeView(DashboardView):
@@ -20,13 +22,23 @@ class HomeView(DashboardView):
 
 class LogsMenu(HomeView):
     crumbs = (
-        {'url': 'admin:nginx', 'name': 'NginX'},
+        {'url': 'admin:logs', 'name': 'Logs analysis'},
     )
     grid = Grid(Row(Column(BoxLogsLinks())))
 
 
 class LogsStatusCodes(LogsMenu):
     crumbs = (
-        {'url': 'admin:nginx_status_codes', 'name': _('Status codes')},
+        {'url': 'admin:logs_status_codes', 'name': _('Status codes')},
     )
     grid = Grid(Row(Column(BoxLogsLinks(), BoxLogsStatusCodes())))
+
+
+class LogsMostVisitedPages(LogsMenu):
+    crumbs = (
+        {'url': 'admin:logs_most_visited_pages',
+         'name': _('Most visited pages')},
+    )
+    grid = Grid(Row(Column(BoxLogsLinks(), width=5),
+                    Column(BoxLogsMostVisitedPagesLegend(), width=7)),
+                Row(Column(BoxLogsMostVisitedPages(lazy=True))))

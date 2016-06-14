@@ -7,7 +7,8 @@ from django.contrib.admin.sites import AdminSite
 
 from suit_dashboard.urls import get_refreshable_urls
 
-from meerkat.logs.views import HomeView, LogsMenu, LogsStatusCodes
+from meerkat.logs.views import (
+    HomeView, LogsMenu, LogsStatusCodes, LogsMostVisitedPages)
 
 
 class DashboardSite(AdminSite):
@@ -18,13 +19,16 @@ class DashboardSite(AdminSite):
             url(r'^$',
                 self.admin_view(HomeView.as_view()),
                 name='index'),
-            url(r'^nginx/', include([
+            url(r'^logs/', include([
                 url(r'^$',
                     self.admin_view(LogsMenu.as_view()),
-                    name='nginx'),
+                    name='logs'),
                 url(r'^status_codes$',
                     self.admin_view(LogsStatusCodes.as_view()),
-                    name='nginx_status_codes'),
+                    name='logs_status_codes'),
+                url(r'^most_visited_pages$',
+                    self.admin_view(LogsMostVisitedPages.as_view()),
+                    name='logs_most_visited_pages'),
             ])),
         ]
 
