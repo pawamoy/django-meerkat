@@ -8,15 +8,13 @@ from os.path import join
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from suit_dashboard.decorators import refreshable
-
 from meerkat.logs.data import STATUS_CODES
 from meerkat.logs.parsers import NginXAccessLogParser
-from meerkat.logs.stats import most_visited_pages_stats, status_codes_stats
+from meerkat.logs.stats import (
+    most_visited_pages_stats, status_codes_stats)
 from meerkat.utils.url import url_is_asset, url_is_false_negative, url_is_old
 
 
-@refreshable
 def status_codes_chart():
     parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
                                   top_dir=join(settings.BASE_DIR, 'logs'))
@@ -65,6 +63,40 @@ def status_codes_chart():
     return chart_options
 
 
+def status_codes_by_date_chart():
+    return {
+        'chart': {
+            'type': 'area',
+            'zoomType': 'x'
+        },
+        'title': {
+            'text': None
+        },
+        'xAxis': {
+            'type': 'datetime'
+        },
+        'yAxis': {
+            'title': {
+                'text': None
+            }
+        },
+        'legend': {
+            'enabled': True
+        },
+        'tooltip': {
+             'shared': True
+        },
+        'plotOptions': {
+            'area': {
+                'lineWidth': 1,
+                'marker': {
+                    'lineWidth': 1,
+                }
+            }
+        }
+    }
+
+
 def most_visited_pages_legend_chart():
     return {
         'chart': {
@@ -76,10 +108,11 @@ def most_visited_pages_legend_chart():
         },
         'xAxis': {
             'categories': [
-                _('Valid project URL'),
-                _('Valid asset URL'),
-                _('Common but not valid asset URL'),
+                _('Project URL'),
                 _('Old project URL'),
+                _('Asset URL'),
+                _('Old asset URL'),
+                _('Common asset URL'),
                 _('False-negative project URL'),
                 _('Suspicious URL (potential attack)')
             ],
@@ -109,8 +142,9 @@ def most_visited_pages_legend_chart():
             'name': _('Legend'),
             'data': [
                 {'color': '#AFE4FD', 'y': 1},
-                {'color': '#DBDBDB', 'y': 1},
                 {'color': '#F1F2B6', 'y': 1},
+                {'color': '#DBDBDB', 'y': 1},
+                {'color': '#808080', 'y': 1},
                 {'color': '#B6B6F2', 'y': 1},
                 {'color': '#9CD8AC', 'y': 1},
                 {'color': '#FFB31A', 'y': 1},
@@ -206,8 +240,8 @@ def most_visited_pages_charts():
         """ % (_('Distinct URLs'), _('Occurrences'))
 
     occurrences = stats['less_than_10']
-    total_distinct = sum([v['distinct'] for k, v in occurrences])
-    total_occurrences = sum([v['total'] for k, v in occurrences])
+    total_distinct = sum([v['distinct'] for k, v in occurrences.items()])
+    total_occurrences = sum([v['total'] for k, v in occurrences.items()])
     charts.append({
         'chart': {
             'plotBackgroundColor': None,
@@ -243,6 +277,14 @@ def most_visited_pages_charts():
                 'total_occ': total_occurrences,
                 'color': '#AFE4FD'
             }, {
+                'name': _('Old project URL'),
+                'dis': occurrences['old_project']['distinct'],
+                'y': occurrences['old_project']['total'],
+                'occ': occurrences['old_project']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
+                'color': '#B6B6F2'
+            }, {
                 'name': _('Valid asset URL'),
                 'dis': occurrences['asset']['distinct'],
                 'y': occurrences['asset']['total'],
@@ -251,21 +293,21 @@ def most_visited_pages_charts():
                 'total_occ': total_occurrences,
                 'color': '#DBDBDB'
             }, {
-                'name': _('Common but not valid asset URL'),
+                'name': _('Old asset URL'),
+                'dis': occurrences['old_asset']['distinct'],
+                'y': occurrences['old_asset']['total'],
+                'occ': occurrences['old_asset']['total'],
+                'total_dis': total_distinct,
+                'total_occ': total_occurrences,
+                'color': '#808080'
+            }, {
+                'name': _('Common asset URL'),
                 'dis': occurrences['common_asset']['distinct'],
                 'y': occurrences['common_asset']['total'],
                 'occ': occurrences['common_asset']['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
                 'color': '#F1F2B6'
-            }, {
-                'name': _('Old project URL'),
-                'dis': occurrences['old']['distinct'],
-                'y': occurrences['old']['total'],
-                'occ': occurrences['old']['total'],
-                'total_dis': total_distinct,
-                'total_occ': total_occurrences,
-                'color': '#B6B6F2'
             }, {
                 'name': _('False-negative project URL'),
                 'dis': occurrences['false']['distinct'],

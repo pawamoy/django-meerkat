@@ -8,8 +8,9 @@ from suit_dashboard.layout import Column, Grid, Row
 from suit_dashboard.views import DashboardView
 
 from meerkat.logs.boxes import (
-    BoxLogsLinks, BoxLogsMostVisitedPages, BoxLogsMostVisitedPagesLegend,
-    BoxLogsStatusCodes)
+    BoxLogs, BoxLogsLinks, BoxLogsMostVisitedPages,
+    BoxLogsMostVisitedPagesLegend, BoxLogsStatusCodes,
+    BoxLogsStatusCodesByDate)
 
 
 class HomeView(DashboardView):
@@ -34,6 +35,15 @@ class LogsStatusCodes(LogsMenu):
     grid = Grid(Row(Column(BoxLogsLinks(), BoxLogsStatusCodes())))
 
 
+class LogsStatusCodesByDate(LogsMenu):
+    crumbs = (
+        {'url': 'admin:logs_status_code_by_date',
+         'name': _('Status codes by date')},
+    )
+    grid = Grid(Row(Column(BoxLogsLinks())),
+                Row(Column(BoxLogsStatusCodesByDate())))
+
+
 class LogsMostVisitedPages(LogsMenu):
     crumbs = (
         {'url': 'admin:logs_most_visited_pages',
@@ -42,3 +52,28 @@ class LogsMostVisitedPages(LogsMenu):
     grid = Grid(Row(Column(BoxLogsLinks(), width=5),
                     Column(BoxLogsMostVisitedPagesLegend(), width=7)),
                 Row(Column(BoxLogsMostVisitedPages(lazy=True))))
+
+
+class LogsView(LogsMenu):
+    crumbs = (
+        {'url': 'admin:logs', 'name': 'Logs'},
+    )
+
+    def get(self, request, *args, **kwargs):
+        year = kwargs.pop('year', None)
+        month = kwargs.pop('month', None)
+        day = kwargs.pop('day', None)
+        hour = kwargs.pop('hour', None)
+
+        self.extra_context = {
+            'year': year,
+            'month': month,
+            'day': day,
+            'hour': hour,
+            'page': request.GET.get('page')
+        }
+
+        self.grid = Grid(Row(Column(BoxLogsLinks(),
+                                    BoxLogs(**self.extra_context))))
+
+        return super(LogsView, self).get(request, *args, **kwargs)

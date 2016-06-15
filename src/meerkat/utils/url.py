@@ -2,17 +2,25 @@
 
 from __future__ import unicode_literals
 
-from django.core.urlresolvers import Resolver404
+from django.conf import settings
+from django.core.urlresolvers import resolve, Resolver404
+from django.contrib.staticfiles import finders
 
 
-def url_is_project_url(path, patterns, default='not_a_func'):
-    for url in patterns:
-        try:
-            u = url.resolve(path)
-            if u and u.func != default:
-                return True
-        except Resolver404:
-            pass
+def url_is_project_url(path, default='not_a_func'):
+    try:
+        u = resolve(path)
+        if u and u.func != default:
+            return True
+    except Resolver404:
+        static_url = settings.STATIC_URL
+        static_url_wd = static_url.lstrip('/')
+        if path.startswith(static_url):
+            path = path[len(static_url):]
+        elif path.startswith(static_url_wd):
+            path = path[len(static_url_wd):]
+        if finders.find(path):
+            return True
     return False
 
 
@@ -20,13 +28,16 @@ URL_WHITE_LIST = {
     'ASSETS': {
         'PREFIXES': (
             'media/', 'static/', 'assets/', 'cache/', 'markdown/image/'
-        ),
+        )
+    },
+
+    'COMMON_ASSETS': {
         'CONSTANTS': (
             'favicon.ico', 'robots.txt', 'apple-touch-icon.png',
             'apple-touch-icon-precomposed.png',
             'apple-touch-icon-120x120.png',
             'apple-touch-icon-120x120-precomposed.png'
-        ),
+        )
     },
 
     'OLD': {
@@ -37,7 +48,7 @@ URL_WHITE_LIST = {
         'CONSTANTS': (
             'visual/', 'communities/', 'welcome/', 'jsi18n/',
             'overview/', 'profile/', 'settings/', 'chart', 'login'
-        ),
+        )
     },
 
     'FALSE_NEGATIVE': {
@@ -70,6 +81,7 @@ def url_is(white_list):
     return func
 
 url_is_asset = url_is(URL_WHITE_LIST['ASSETS'])
+url_is_common_asset = url_is(URL_WHITE_LIST['COMMON_ASSETS'])
 url_is_old = url_is(URL_WHITE_LIST['OLD'])
 url_is_false_negative = url_is(URL_WHITE_LIST['FALSE_NEGATIVE'])
 url_is_ignored = url_is(URL_WHITE_LIST['IGNORED'])
