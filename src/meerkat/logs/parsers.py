@@ -6,7 +6,7 @@ import re
 
 
 class GenericParser(object):
-    def __init__(self, file_path_regex, log_format_regex, top_dir='/'):
+    def __init__(self, file_path_regex, log_format_regex, top_dir):
         self.file_path_regex = file_path_regex
         self.log_format_regex = log_format_regex
         self.top_dir = top_dir
@@ -55,7 +55,7 @@ class GenericParser(object):
 
 class NginXAccessLogParser(GenericParser):
     def __init__(self, file_path_regex=None,
-                 log_format_regex=None, top_dir='/var/log/nginx'):
+                 log_format_regex=None, top_dir=None):
         if file_path_regex is None:
             file_path_regex = re.compile(r'access.log')
         # coderwall.com/p/snn1ag/regex-to-parse-your-default-nginx-access-logs
@@ -69,6 +69,8 @@ class NginXAccessLogParser(GenericParser):
                 r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
                 r'(["](?P<referrer>(\-)|(.+))["]) (["](?P<user_agent>.+)["])',
                 re.IGNORECASE)
+        if top_dir is None:
+            top_dir = '/var/log/nginx'
         super(NginXAccessLogParser, self).__init__(
             file_path_regex, log_format_regex, top_dir)
 

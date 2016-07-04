@@ -135,8 +135,10 @@ class BoxLogs(Box):
         return 'meerkat/logs/logs_list.html'
 
     def get_context(self):
-        parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
-                                      top_dir=join(settings.BASE_DIR, 'logs'))
+        filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
+        format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
+        top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
+        parser = NginXAccessLogParser(filename_re, format_re, top_dir)
         all_logs = parser.parse_files()
 
         context = {'available_years': self.get_logs_years(all_logs)}
