@@ -74,6 +74,7 @@ class LogsView(LogsMenu):
         }
 
         self.grid = Grid(Row(Column(BoxLogsLinks(),
-                                    BoxLogs(**self.extra_context))))
+                                    BoxLogs(persistent=True,
+                                            **self.extra_context))))
 
         return super(LogsView, self).get(request, *args, **kwargs)
