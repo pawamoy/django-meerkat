@@ -7,7 +7,7 @@ from collections import Counter
 from meerkat.utils.list import distinct
 from meerkat.utils.time import log_date_to_python_date, ms_since_epoch
 from meerkat.utils.url import (
-    url_is_asset, url_is_common_asset,url_is_false_negative, url_is_ignored,
+    url_is_asset, url_is_common_asset, url_is_false_negative, url_is_ignored,
     url_is_old, url_is_project_url)
 
 
