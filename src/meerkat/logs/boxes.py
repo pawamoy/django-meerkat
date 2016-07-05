@@ -7,16 +7,16 @@ import re
 from os.path import join
 
 from django.conf import settings
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.utils.translation import ugettext as _
 
-from meerkat.logs.parsers import NginXAccessLogParser
 from suit_dashboard.box import Box, Item
 
 from meerkat.logs.charts import (
     most_visited_pages_charts, most_visited_pages_legend_chart,
-    status_codes_chart, status_codes_by_date_chart)
+    status_codes_by_date_chart, status_codes_chart)
 from meerkat.logs.data import STATUS_CODES
+from meerkat.logs.parsers import NginXAccessLogParser
 from meerkat.logs.stats import status_codes_by_date_stats
 
 

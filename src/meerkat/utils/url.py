@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.core.urlresolvers import resolve, Resolver404
 from django.contrib.staticfiles import finders
+from django.core.urlresolvers import Resolver404, resolve
 
 
 def url_is_project_url(path, default='not_a_func'):
