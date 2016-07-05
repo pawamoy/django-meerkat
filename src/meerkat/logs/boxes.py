@@ -141,32 +141,27 @@ class BoxLogs(Box):
         parser = NginXAccessLogParser(filename_re, format_re, top_dir)
         all_logs = parser.parse_files()
 
-        context = {'available_years': self.get_logs_years(all_logs)}
+        context = {'available_years': self.get_available_years(all_logs)}
         if hasattr(self, 'year') and self.year:
-            self.set_logs_by_year(all_logs, self.year)
-            context['available_months'] = self.get_logs_year_months()
+            by_year = self.logs_by_year(all_logs, self.year)
+            context['available_months'] = self.get_available_months(by_year)
             if hasattr(self, 'month') and self.month:
-                self.set_logs_by_month(self.month)
-                context['available_days'] = self.get_logs_month_days()
+                by_month = self.logs_by_month(by_year, self.month)
+                context['available_days'] = self.get_available_days(by_month)
                 if hasattr(self, 'day') and self.day:
-                    self.set_logs_by_day(self.day)
-                    context['available_hours'] = self.get_logs_day_hours()
+                    by_day = self.logs_by_day(by_month, self.day)
+                    context['available_hours'] = self.get_available_hours(by_day)  # NOQA
                     if hasattr(self, 'hour') and self.hour:
-                        self.set_logs_by_hour(self.hour)
-                        logs = self.by_hour
-                        context['total'] = len(self.by_hour)
+                        logs = self.logs_by_hour(by_day, self.hour)
                     else:
-                        logs = self.by_day
-                        context['total'] = len(self.by_day)
+                        logs = by_day
                 else:
-                    logs = self.by_month
-                    context['total'] = len(self.by_month)
+                    logs = by_month
             else:
-                logs = self.by_year
-                context['total'] = len(self.by_year)
+                logs = by_year
         else:
             logs = []
-            context['total'] = 0
+        context['total'] = len(logs)
 
         results_per_page = 25
         paginator = Paginator(logs, results_per_page)
@@ -196,28 +191,28 @@ class BoxLogs(Box):
             'Dec': '12',
         }.get(month)
 
-    def get_logs_years(self, logs):
+    def get_available_years(self, logs):
         return sorted(set(l['year'] for l in logs))
 
-    def get_logs_year_months(self):
+    def get_available_months(self, logs):
         return sorted([self.month_name_to_number(m) for m in set(
-            l['month'] for l in self.by_year)])
+            l['month'] for l in logs)])
 
-    def get_logs_month_days(self):
-        return sorted(set(l['day'] for l in self.by_month))
+    def get_available_days(self, logs):
+        return sorted(set(l['day'] for l in logs))
 
-    def get_logs_day_hours(self):
-        return sorted(set(l['hour'] for l in self.by_day))
+    def get_available_hours(self, logs):
+        return sorted(set(l['hour'] for l in logs))
 
-    def set_logs_by_year(self, logs, year):
-        self.by_year = [l for l in logs if l['year'] == str(year)]
+    def logs_by_year(self, logs, year):
+        return [l for l in logs if l['year'] == str(year)]
 
-    def set_logs_by_month(self, month):
-        self.by_month = [l for l in self.by_year
-                         if self.month_name_to_number(l['month']) == month]
+    def logs_by_month(self, logs, month):
+        return [l for l in logs
+                if self.month_name_to_number(l['month']) == month]
 
-    def set_logs_by_day(self, day):
-        self.by_day = [l for l in self.by_month if l['day'] == str(day)]
+    def logs_by_day(self, logs, day):
+        return [l for l in logs if l['day'] == str(day)]
 
-    def set_logs_by_hour(self, hour):
-        self.by_hour = [l for l in self.by_day if l['hour'] == str(hour)]
+    def logs_by_hour(self, logs, hour):
+        return [l for l in logs if l['hour'] == str(hour)]

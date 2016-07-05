@@ -51,7 +51,7 @@ class LogsMostVisitedPages(LogsMenu):
     )
     grid = Grid(Row(Column(BoxLogsLinks(), width=5),
                     Column(BoxLogsMostVisitedPagesLegend(), width=7)),
-                Row(Column(BoxLogsMostVisitedPages(lazy=True))))
+                Row(Column(BoxLogsMostVisitedPages())))
 
 
 class LogsView(LogsMenu):
@@ -60,21 +60,13 @@ class LogsView(LogsMenu):
     )
 
     def get(self, request, *args, **kwargs):
-        year = kwargs.pop('year', None)
-        month = kwargs.pop('month', None)
-        day = kwargs.pop('day', None)
-        hour = kwargs.pop('hour', None)
-
         self.extra_context = {
-            'year': year,
-            'month': month,
-            'day': day,
-            'hour': hour,
+            'year': kwargs.pop('year', None),
+            'month': kwargs.pop('month', None),
+            'day': kwargs.pop('day', None),
+            'hour': kwargs.pop('hour', None),
             'page': request.GET.get('page')
         }
-
         self.grid = Grid(Row(Column(BoxLogsLinks(),
-                                    BoxLogs(persistent=True,
-                                            **self.extra_context))))
-
+                                    BoxLogs(**self.extra_context))))
         return super(LogsView, self).get(request, *args, **kwargs)

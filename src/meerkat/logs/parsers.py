@@ -77,7 +77,7 @@ class NginXAccessLogParser(GenericParser):
 
 class NginXErrorLogParser(GenericParser):
     def __init__(self, file_path_regex=None,
-                 log_format_regex=None, top_dir='var/log/nginx'):
+                 log_format_regex=None, top_dir=None):
         if file_path_regex is None:
             file_path_regex = re.compile(r'error.log')
         if log_format_regex is None:
@@ -95,6 +95,8 @@ class NginXErrorLogParser(GenericParser):
                 r'(, host: (?P<host>[^,]+))?'
                 r'(, referrer: (?P<referrer>[^,]+))?$',
                 re.IGNORECASE)
+        if top_dir is None:
+            top_dir = 'var/log/nginx'
         super(NginXErrorLogParser, self).__init__(
             file_path_regex, log_format_regex, top_dir)
 
