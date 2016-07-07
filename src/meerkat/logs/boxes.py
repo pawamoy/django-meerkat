@@ -58,8 +58,10 @@ class BoxLogsStatusCodesByDate(Box):
         return 'meerkat/logs/status_codes_by_date.html'
 
     def get_context(self):
-        parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
-                                      top_dir=join(settings.BASE_DIR, 'logs'))
+        filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
+        format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
+        top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
+        parser = NginXAccessLogParser(filename_re, format_re, top_dir)
         stats = status_codes_by_date_stats(parser.parse_files())
 
         unique_ip_data = [{

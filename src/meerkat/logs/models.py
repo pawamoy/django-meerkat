@@ -3,10 +3,14 @@
 from __future__ import unicode_literals
 
 import datetime
+import threading
+import time
+from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+from meerkat.logs.parsers import NginXAccessLogParser
 from meerkat.utils.geolocation import ip_info
 
 
@@ -40,7 +44,6 @@ class Geolocation(models.Model):
         verbose_name = _('Geolocation')
         verbose_name_plural = _('Geolocations')
 
-    @python_2_unicode_compatible
     def __str__(self):
         return '%s,%s' % (self.latitude, self.longitude)
 
@@ -163,7 +166,6 @@ class RequestLog(models.Model):
         verbose_name = _('Request log')
         verbose_name_plural = _('Request logs')
 
-    @python_2_unicode_compatible
     def __str__(self):
         return str(self.datetime)
 
@@ -210,3 +212,33 @@ class RequestLog(models.Model):
             self.save()
 
             return True
+
+    @staticmethod
+    def real_time_save_log_in_db():
+        filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
+        format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
+        top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
+        parser = NginXAccessLogParser(filename_re, format_re, top_dir)
+
+        def follow(f):
+            f.seek(0, 2)
+            while True:
+                line = f.readline()
+                if not line:
+                    time.sleep(1)
+                    continue
+                yield line
+
+        def read_continuously():
+            with open('/home/pawantu/some_file.log') as f:
+                for line in follow(f):
+                    data = parser.parse_string(line)
+                    print(data)
+                    print('-------------------------------------')
+
+        t = threading.Thread(target=read_continuously)
+        t.daemon = True
+        t.start()
+        return t
+
+

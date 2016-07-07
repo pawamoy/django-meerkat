@@ -52,6 +52,9 @@ class GenericParser(object):
                     log_lines.append(match.groupdict())
         return log_lines
 
+    def parse_string(self, string):
+        return re.match(self.log_format_regex, string).groupdict()
+
 
 class NginXAccessLogParser(GenericParser):
     def __init__(self, file_path_regex=None,

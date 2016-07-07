@@ -2,9 +2,6 @@
 
 from __future__ import unicode_literals
 
-import re
-from os.path import join
-
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
@@ -15,9 +12,12 @@ from meerkat.utils.url import url_is_asset, url_is_false_negative, url_is_old
 
 
 def status_codes_chart():
-    parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
-                                  top_dir=join(settings.BASE_DIR, 'logs'))
+    filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
+    format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
+    top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
+    parser = NginXAccessLogParser(filename_re, format_re, top_dir)
     stats = status_codes_stats(parser.parse_files())
+
     chart_options = {
         'chart': {
             'type': 'pie'
@@ -153,8 +153,10 @@ def most_visited_pages_legend_chart():
 
 
 def most_visited_pages_charts():
-    parser = NginXAccessLogParser(re.compile(r'nginx-access-.*'),
-                                  top_dir=join(settings.BASE_DIR, 'logs'))
+    filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
+    format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
+    top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
+    parser = NginXAccessLogParser(filename_re, format_re, top_dir)
     stats = most_visited_pages_stats(parser.parse_files())
 
     charts = []
