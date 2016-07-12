@@ -7,7 +7,6 @@ import threading
 import time
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from meerkat.logs.parsers import NginXAccessLogParser
@@ -25,18 +24,30 @@ class Geolocation(models.Model):
     # request. Therefore, these geolocations must be stored in the DB
     # if we want to compute statistical data about it. We cannot query
     # web-services each time we want to do this (data changed over time).
-    latitude = models.CharField(max_length=255)
-    longitude = models.CharField(max_length=255)
-    hostname = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    city_code = models.CharField(max_length=255, blank=True)
-    region = models.CharField(max_length=255)
-    region_code = models.CharField(max_length=255, blank=True)
-    country = models.CharField(max_length=255)
-    country_code = models.CharField(max_length=255, blank=True)
-    continent = models.CharField(max_length=255, blank=True)
-    continent_code = models.CharField(max_length=255, blank=True)
-    org = models.CharField(max_length=255)
+    latitude = models.CharField(
+        verbose_name=_(''), max_length=255)
+    longitude = models.CharField(
+        verbose_name=_(''), max_length=255)
+    hostname = models.CharField(
+        verbose_name=_(''), max_length=255)
+    city = models.CharField(
+        verbose_name=_(''), max_length=255)
+    city_code = models.CharField(
+        verbose_name=_(''), max_length=255, blank=True)
+    region = models.CharField(
+        verbose_name=_(''), max_length=255)
+    region_code = models.CharField(
+        verbose_name=_(''), max_length=255, blank=True)
+    country = models.CharField(
+        verbose_name=_(''), max_length=255)
+    country_code = models.CharField(
+        verbose_name=_(''), max_length=255, blank=True)
+    continent = models.CharField(
+        verbose_name=_(''), max_length=255, blank=True)
+    continent_code = models.CharField(
+        verbose_name=_(''), max_length=255, blank=True)
+    org = models.CharField(
+        verbose_name=_(''), max_length=255)
 
     class Meta:
         unique_together = ('latitude', 'longitude', 'hostname',
@@ -66,9 +77,12 @@ class Geolocation(models.Model):
 
 
 class GeolocationCheck(models.Model):
-    ip_address = models.IPAddressField(unique=True)
-    date = models.DateField(default=datetime.date.today)
-    geolocation = models.ForeignKey(Geolocation)
+    ip_address = models.IPAddressField(
+        verbose_name=_(''), unique=True)
+    date = models.DateField(
+        verbose_name=_(''), default=datetime.date.today)
+    geolocation = models.ForeignKey(
+        Geolocation, verbose_name=_(''))
 
     class Meta:
         verbose_name = _('Geolocation check')
@@ -240,5 +254,3 @@ class RequestLog(models.Model):
         t.daemon = True
         t.start()
         return t
-
-

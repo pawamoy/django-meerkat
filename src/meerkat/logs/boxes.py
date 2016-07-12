@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 
 import json
-import re
-from os.path import join
 
 from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
