@@ -23,7 +23,8 @@ setup(
     license='MPL 2.0',
     description='Security audit tool for Django sites',
     long_description='%s\n%s' % (
-        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.rst')),
+        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S)
+            .sub('', read('README.rst')),
         re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
     ),
     author='Timothee Mazzucotelli',
@@ -35,7 +36,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     classifiers=[
-        # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        # http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
@@ -57,10 +58,10 @@ setup(
         'Topic :: Utilities',
     ],
     keywords=[
-        # eg: 'keyword1', 'keyword2', 'keyword3',
+        'security', 'audit', 'admin', 'dashboard', 'logs', 'analysis', 'django'
     ],
     install_requires=[
-        # eg: 'aspectlib==1.1.1', 'six>=1.7',
+        'django-suit-dashboard'
     ],
     extras_require={
         # eg:
