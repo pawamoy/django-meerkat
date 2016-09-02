@@ -5,18 +5,14 @@ Meerkat
 .. start-badges
 
 |travis|
-|docs|
 |landscape|
 |version|
 |wheel|
+|codecov|
+|gitter|
 
-.. |codecov|
 .. |supported-versions|
 .. |supported-implementations|
-
-.. |docs| image:: https://readthedocs.org/projects/meerkat/badge/?version=latest
-    :target: https://meerkat.readthedocs.io/en/latest/
-    :alt: Documentation Status
 
 .. |travis| image:: https://travis-ci.org/Pawamoy/django-meerkat.svg?branch=master
     :alt: Travis-CI Build Status
@@ -50,10 +46,14 @@ Meerkat
     :alt: Supported implementations
     :target: https://pypi.python.org/pypi/django-meerkat/
 
+.. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
+    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
+    :target: https://gitter.im/Pawamoy/django-meerkat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 
 .. end-badges
 
-Security audit tool for Django sites
+Security audit tool for Django sites.
 
 License
 =======
@@ -70,11 +70,9 @@ No release on PyPi yet. Clone the repo.
 Documentation
 =============
 
-https://meerkat.readthedocs.io/en/latest/
+https://github.com/Pawamoy/django-meerkat/wiki
 
 Development
 ===========
 
-To run the all tests run::
-
-    tox
+To run all the tests: ``tox``
