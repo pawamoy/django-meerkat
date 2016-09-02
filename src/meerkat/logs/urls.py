@@ -2,11 +2,11 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 
 from .views import (
-    LogsMenu, LogsMostVisitedPages, LogsStatusCodes,
-    LogsStatusCodesByDate, LogsView)
+    LogsMenu, LogsMostVisitedPages, LogsStatusCodes, LogsStatusCodesByDate,
+    LogsView)
 
 
 def logs_urlpatterns(admin_view):
