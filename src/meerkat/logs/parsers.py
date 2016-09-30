@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import os
 import re
+from os.path import sep, relpath, join
+from os import walk
 
 
 class GenericParser(object):
@@ -21,24 +22,23 @@ class GenericParser(object):
     # http://stackoverflow.com/questions/6798097#answer-6799409
     def matching_files(self):
         matching = []
-        sep = os.path.sep
         matcher = self.file_path_regex
         pieces = self.file_path_regex.pattern.split(sep)
         partial_matchers = map(
             re.compile,
             (sep.join(pieces[:i + 1]) for i in range(len(pieces))))
 
-        for root, dirs, files in os.walk(self.top_dir, topdown=True):
+        for root, dirs, files in walk(self.top_dir, topdown=True):
             for i in reversed(range(len(dirs))):
-                dirname = os.path.relpath(
-                    os.path.join(root, dirs[i]), self.top_dir)
+                dirname = relpath(
+                    join(root, dirs[i]), self.top_dir)
                 dirlevel = dirname.count(sep)
                 if not partial_matchers[dirlevel].match(dirname):
                     del dirs[i]
 
             for filename in files:
                 if matcher.match(filename):
-                    matching.append(os.path.relpath(os.path.join(root, filename)))
+                    matching.append(relpath(join(root, filename)))
 
         return matching
 

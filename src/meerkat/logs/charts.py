@@ -29,9 +29,9 @@ def status_codes_chart():
             'text': ''
         },
         # 'tooltip': {
-        #     # FIXME: find a way to handle javascript code
-        #     'formatter': "return this.y + '/' + this.total + ' (' + "
-        #                  "Highcharts.numberFormat(this.percentage, 1) + '%)';"
+        #   # FIXME: find a way to handle javascript code
+        #   'formatter': "return this.y + '/' + this.total + ' (' + "
+        #                "Highcharts.numberFormat(this.percentage, 1) + '%)';"
         # },
         'legend': {
             'enabled': True,
@@ -68,23 +68,11 @@ def status_codes_by_date_chart():
             'type': 'area',
             'zoomType': 'x'
         },
-        'title': {
-            'text': None
-        },
-        'xAxis': {
-            'type': 'datetime'
-        },
-        'yAxis': {
-            'title': {
-                'text': None
-            }
-        },
-        'legend': {
-            'enabled': True
-        },
-        'tooltip': {
-             'shared': True
-        },
+        'title': {'text': None},
+        'xAxis': {'type': 'datetime'},
+        'yAxis': {'title': {'text': None}},
+        'legend': {'enabled': True},
+        'tooltip': {'shared': True},
         'plotOptions': {
             'area': {
                 'lineWidth': 1,
@@ -173,7 +161,7 @@ def most_visited_pages_charts():
             'title': {
                 'text': _('More than %d times' % bound) if i == 0 else
                 _('Between %d and %d times') % (
-                    bound, stats['more_than_10'][i-1]['bound'])
+                    bound, stats['more_than_10'][i - 1]['bound'])
             },
             'xAxis': {
                 'categories': [u for (c, u, v) in subset],
