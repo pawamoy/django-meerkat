@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+
 import re
-from os.path import sep, relpath, join
 from os import walk
+from os.path import join, relpath, sep
 
 
 class GenericParser(object):
