@@ -1,0 +1,114 @@
+{% load i18n admin_static %}
+{% with ctxt=box.context %}
+  <div id="date-selection">
+    <table class="table table-condensed table-hover">
+      <tbody>
+        <tr>
+          <td>{% trans "Year" %}</td>
+          <td>
+            {% for available_year in ctxt.available_years %}
+              <a href="{% url "admin:logs_list_year" year=available_year %}#date-selection"
+                 class="label {% if available_year == year %}label-info{% endif %}">
+                {{ available_year }}
+              </a>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>{% trans "Month" %}</td>
+          <td>
+            {% for available_month in ctxt.available_months %}
+              <a href="{% url "admin:logs_list_month" year=year month=available_month %}#date-selection"
+                 class="label {% if available_month == month %}label-info{% endif %}">
+                {{ available_month }}
+              </a>
+            {% empty %}
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>{% trans "Day" %}</td>
+          <td>
+            {% for available_day in ctxt.available_days %}
+              <a href="{% url "admin:logs_list_day" year=year month=month day=available_day %}#date-selection"
+                 class="label {% if available_day == day %}label-info{% endif %}">
+                {{ available_day }}
+              </a>
+            {% empty %}
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>{% trans "Hour" %}</td>
+          <td>
+            {% for available_hour in ctxt.available_hours %}
+              <a href="{% url "admin:logs_list_hour" year=year month=month day=day hour=available_hour %}#date-selection"
+                 class="label {% if available_hour == hour %}label-info{% endif %}">
+                {{ available_hour }}
+              </a>
+            {% empty %}
+            {% endfor %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p id="total" class="bold">{% trans "Total requests:" %} {{ ctxt.total }}</p>
+  {% include "dashboard/partials/logs_pagination.html" with logs=ctxt.logs only %}
+  <hr>
+  <ul>
+    <li>
+      {% blocktrans %}
+        Click on the IP addresses to get their geolocation with <a href="http://ipinfo.io/">ipinfo.io</a> and <a href="https://www.google.com/maps">Google Maps</a>.
+      {% endblocktrans %}
+    </li>
+  </ul>
+  <hr>
+
+  <div id="logs-display">
+    <table class="table table-condensed table-hover table-striped">
+      <thead>
+        <tr>
+          <td>{% trans "Date and Time" %}</td>
+          <td>{% trans "IP address" %}</td>
+          <td>{% trans "URL" %}</td>
+          <td>{% trans "Status Code" %}</td>
+          <td>{% trans "Bytes sent" %}</td>
+          <td>{% trans "User Agent" %}</td>
+          <td>{% trans "Referrer" %}</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in ctxt.logs %}
+          <tr>
+            <td>{{ log.year }}/{{ log.month }}/{{ log.day }} {{ log.hour }}:{{ log.minute }}:{{ log.second }} {{ log.timezone }}</td>
+            <td>
+              <a class="ipaddress" href="/admin/ip_geoloc/{{ log.ip_address }}">
+                {{ log.ip_address }}
+              </a>
+            </td>
+            <td>{{ log.url }}</td>
+            <td>{{ log.status_code }}</td>
+            <td>{{ log.bytes_sent }}</td>
+            <td>{{ log.user_agent }}</td>
+            <td>{{ log.referrer }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "dashboard/partials/logs_pagination.html" with logs=ctxt.logs only %}
+{% endwith %}
+
+<script>
+  var container = $(document);
+  container.on('click', '.ipaddress', function(event) {
+    if (this.href) {
+      var win = window.open(this.href, "Geolocation", 'height=500,width=800,resizable=yes,scrollbars=yes');
+      win.focus();
+    }
+    event.preventDefault();
+  })
+</script>

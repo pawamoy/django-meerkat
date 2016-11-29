@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="align-center">
+  <span class="step-links">
+    {% if logs.has_previous %}
+      <a class="label" href="?page=1#total">{% trans "First" %}</a>
+      <a class="label" href="?page={{ logs.previous_page_number }}#total">{% trans "Previous" %}</a>
+    {% endif %}
+
+    <span class="current label label-info">
+      {{ logs.number }} / {{ logs.paginator.num_pages }} {% trans "pages" %}
+    </span>
+
+    {% if logs.has_next %}
+      <a class="label" href="?page={{ logs.next_page_number }}#total">{% trans "Next" %}</a>
+      <a class="label" href="?page={{ logs.paginator.num_pages }}#total">{% trans "Last" %}</a>
+    {% endif %}
+  </span>
+</div>

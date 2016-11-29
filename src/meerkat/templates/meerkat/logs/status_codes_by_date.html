@@ -1,0 +1,32 @@
+{% load i18n %}
+<p>
+  {% blocktrans %}
+    In the following, requests resulting in status codes 400, 444 or 502 are considered attacks. This assumption
+    is made from the proportion of requests with these codes actually being attacks by looking at the logs.
+  {% endblocktrans %}
+</p>
+<ul>
+  <li>{% trans "400: Bad Request (malformed request syntax, invalid request message framing, deceptive request routing)" %}</li>
+  <li>{% trans "444: No Response (this code is specific to NginX: no information returned to client and connection closed)" %}</li>
+  <li>{% trans "502: Bad Gateway (server acting as proxy and received invalid response from upstream server)" %}</li>
+</ul>
+<div id="area-chart" class="widget-item-value"></div>
+<div id="percent-chart" class="widget-item-value"></div>
+<script>
+  var options = {{ box.context.generic_chart|safe }};
+
+  var unique_ip_data = {{ box.context.unique_ip_data|safe }};
+  var codes_data = {{ box.context.codes_data|safe }};
+  var attacks_data = {{ box.context.attacks_data|safe }};
+
+  options.title.text = '{% trans 'Number of requests' %}';
+{#  options.yAxis.title.text = '{% trans 'Requests' %}';#}
+  options.series = unique_ip_data.concat(codes_data, attacks_data);
+  $('#area-chart').highcharts(options);
+
+  options.title.text = '{% trans 'Percentage' %}';
+{#  options.yAxis.title.text = '{% trans 'Percents' %}';#}
+  options.plotOptions.series = {stacking: 'percent'};
+  options.series = codes_data;
+  $('#percent-chart').highcharts(options);
+</script>

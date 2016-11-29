@@ -1,0 +1,7 @@
+{% load i18n %}
+<ul>
+  <li><a href="{% url "admin:logs_list" %}">{% trans "Logs list" %}</a></li>
+  <li><a href="{% url "admin:logs_status_codes" %}">{% trans "Status codes" %}</a></li>
+  <li><a href="{% url "admin:logs_status_codes_by_date" %}">{% trans "Status codes by date" %}</a></li>
+  <li><a href="{% url "admin:logs_most_visited_pages" %}">{% trans "Most visited pages" %}</a></li>
+</ul>
