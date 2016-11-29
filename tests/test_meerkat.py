@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from django.test import TestCase
+
 import meerkat
 
 
-def test_main():
-    assert meerkat  # use your library here
+class MainTestCase(TestCase):
+    def setUp(self):
+        pass
+
+    def test_main(self):
+        assert meerkat
+
+    def tearDown(self):
+        pass

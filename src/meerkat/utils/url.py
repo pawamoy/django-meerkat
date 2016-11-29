@@ -80,6 +80,7 @@ def url_is(white_list):
         return False
     return func
 
+
 url_is_asset = url_is(URL_WHITE_LIST['ASSETS'])
 url_is_common_asset = url_is(URL_WHITE_LIST['COMMON_ASSETS'])
 url_is_old = url_is(URL_WHITE_LIST['OLD'])
