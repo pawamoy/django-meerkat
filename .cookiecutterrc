@@ -36,7 +36,7 @@ default_context:
     project_name:                    'Meerkat'
     project_short_description:       'Security audit tool for Django sites'
     pyup:                            'yes'
-    release_date:                    'today'
+    release_date:                    '2016-06-08'
     repo_name:                       'django-meerkat'
     requiresio:                      'no'
     scrutinizer:                     'no'
@@ -45,4 +45,3 @@ default_context:
     travis:                          'yes'
     version:                         '0.1.0'
     website:                         'http://pawamoy.github.io/'
-    year:                            'now'
