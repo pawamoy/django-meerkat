@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
 
+"""
+Logs models.
+
+These models are used to store the logs into the database. Using a database
+allows to query the logs more efficiently without having to read the log
+files every time.
+
+Of course, these tables have to be updated in the background and in real-time,
+which is the difficulty here. Work is in progress.
+"""
+
 from __future__ import unicode_literals
 
 import datetime
@@ -19,6 +30,8 @@ from meerkat.utils.geolocation import ip_info
 
 
 class Geolocation(models.Model):
+    """A model to store a geolocation."""
+
     # Even if we have a paid account on some geolocation service,
     # an IP address had one and only one geolocation at the time of the
     # request. Therefore, these geolocations must be stored in the DB
@@ -50,6 +63,8 @@ class Geolocation(models.Model):
         verbose_name=_(''), max_length=255)
 
     class Meta:
+        """Meta class for Django."""
+
         unique_together = ('latitude', 'longitude', 'hostname',
                            'city', 'region', 'country', 'org')
         verbose_name = _('Geolocation')
@@ -60,12 +75,19 @@ class Geolocation(models.Model):
 
     @staticmethod
     def get_or_create_from_ip(ip):
-        # Else check it
+        """
+        Get or create an entry using obtained information from an IP.
+
+        Args:
+            ip (str): IP address xxx.xxx.xxx.xxx.
+
+        Returns:
+            geolocation: an instance of Geolocation.
+        """
         data = ip_info(ip)
         loc = data['loc']
         lat, lon = loc.split(',')
 
-        # Get or create geolocation object
         return Geolocation.objects.get_or_create(
             latitude=lat,
             longitude=lon,
@@ -77,6 +99,15 @@ class Geolocation(models.Model):
 
 
 class GeolocationCheck(models.Model):
+    """
+    A model to keep track of the geolocation objects given IP address.
+
+    Geolocation objects are generated from an IP address. They may already
+    exist, so we don't want duplicates. This model attaches an IP to a
+    geolocation object. It also adds the date of the check, because an IP will
+    not always be related to the same geolocation, which changes over time.
+    """
+
     ip_address = models.IPAddressField(
         verbose_name=_(''), unique=True)
     date = models.DateField(
@@ -85,11 +116,43 @@ class GeolocationCheck(models.Model):
         Geolocation, verbose_name=_(''))
 
     class Meta:
+        """Meta class for Django."""
+
         verbose_name = _('Geolocation check')
         verbose_name_plural = _('Geolocation checks')
 
 
 class RequestLog(models.Model):
+    """
+    A model to store the request logs.
+
+    Work in progress.
+
+    Attributes:
+        client_ip_address
+        datetime
+        timezone
+        url
+        status_code
+        user_agent
+        referrer
+        upstream
+        host
+        server
+        verb
+        protocol
+        port
+        file_type
+        https
+        bytes_sent
+
+        error
+        level
+        message
+
+        geolocation
+    """
+
     # General info
     client_ip_address = models.IPAddressField(
         verbose_name=_(''), blank=True)
@@ -177,6 +240,8 @@ class RequestLog(models.Model):
     # upstream_status = models.CharField(max_length=255)
 
     class Meta:
+        """Meta class for Django."""
+
         verbose_name = _('Request log')
         verbose_name_plural = _('Request logs')
 
@@ -184,6 +249,16 @@ class RequestLog(models.Model):
         return str(self.datetime)
 
     def update_geolocation(self, since_days=10):
+        """
+        Update the geolocation.
+
+        Args:
+            since_days (int): if checked less than this number of days ago,
+                don't check again (default to 10 days).
+
+        Returns:
+            bool: check was run. Geolocation might not have been updated.
+        """
         # If ip already checked
         try:
             last_check = GeolocationCheck.objects.get(
@@ -229,6 +304,15 @@ class RequestLog(models.Model):
 
     @staticmethod
     def real_time_save_log_in_db():
+        """
+        Start a thread to continuously read log files and append lines in DB.
+
+        Work in progress. Currently the thread doesn't append anything,
+        it only print the information parsed from each line read.
+
+        Returns:
+            thread: the started thread.
+        """
         filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
         format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
         top_dir = getattr(settings, 'LOGS_TOP_DIR', None)

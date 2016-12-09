@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
+"""
+Data module.
+
+Contains a list of the different status codes and their information,
+obtained on Wikipedia.
+"""
+
 from __future__ import unicode_literals
 
 from django.utils.translation import ugettext as _
-
-import requests
 
 
 STATUS_CODES = {
@@ -517,7 +522,3 @@ STATUS_CODES = {
               'CloudFlare could not validate the SSL/TLS certificate that '
               'the origin server presented.')},
 }
-
-
-def get_ip_info(ip):
-    return requests.get('http://ipinfo.io/%s' % ip)

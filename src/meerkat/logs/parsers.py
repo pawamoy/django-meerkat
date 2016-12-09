@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+"""
+Parsers for log files.
+
+This module provides a generic parser that you can customize with regular
+expressions to find the log files and to parse them.
+"""
+
 from __future__ import unicode_literals
 
 import re
@@ -7,8 +14,22 @@ from os import walk
 from os.path import join, relpath, sep
 
 
+# FIXME: generic parser should give defaults to args, and use class
+# variables to initialize them. Then, subparsers should overwrite only the
+# class variables and not the init methods.
+
 class GenericParser(object):
+    """Generic parser. Customize it with regular expressions."""
+
     def __init__(self, file_path_regex, log_format_regex, top_dir):
+        """
+        Init method.
+
+        Args:
+            file_path_regex (str): the regex to find the log files.
+            log_format_regex (str): the regex to parse the log files.
+            top_dir (str): the path to the root directory containing the logs.
+        """
         self.file_path_regex = file_path_regex
         self.log_format_regex = log_format_regex
         self.top_dir = top_dir
@@ -16,12 +37,24 @@ class GenericParser(object):
 
     @property
     def content(self):
+        """
+        Return parsed data. Parse it if not already parsed.
+
+        Returns:
+            list: list of dictionaries (one for each parsed line).
+        """
         if self._content is None:
             self._content = self.parse_files()
         return self._content
 
     # http://stackoverflow.com/questions/6798097#answer-6799409
     def matching_files(self):
+        """
+        Find files.
+
+        Returns:
+            list: the list of matching files.
+        """
         matching = []
         matcher = self.file_path_regex
         pieces = self.file_path_regex.pattern.split(sep)
@@ -44,6 +77,12 @@ class GenericParser(object):
         return matching
 
     def parse_files(self):
+        """
+        Find the files and parse them.
+
+        Returns:
+            list: list of dictionaries (one for each parsed line).
+        """
         log_re = self.log_format_regex
         log_lines = []
         for log_file in self.matching_files():
@@ -54,12 +93,36 @@ class GenericParser(object):
         return log_lines
 
     def parse_string(self, string):
+        """
+        Parse just a string.
+
+        Args:
+            string (str): the log line to parse.
+
+        Returns:
+            dict: parsed information with regex groups as keys.
+        """
         return re.match(self.log_format_regex, string).groupdict()
 
 
 class NginXAccessLogParser(GenericParser):
+    """Parser for NginX logs."""
+
     def __init__(self, file_path_regex=None,
                  log_format_regex=None, top_dir=None):
+        """
+        Init method.
+
+        Args:
+            file_path_regex (str): the regex to find the log files.
+            log_format_regex (str): the regex to parse the log files.
+            top_dir (str): the path to the root directory containing the logs.
+
+        Defaults:
+            file_path_regex: r'access.log'
+            log_format_regex: see source code.
+            top_dir: '/var/log/nginx'
+        """
         if file_path_regex is None:
             file_path_regex = re.compile(r'access.log')
         # coderwall.com/p/snn1ag/regex-to-parse-your-default-nginx-access-logs
@@ -80,8 +143,23 @@ class NginXAccessLogParser(GenericParser):
 
 
 class NginXErrorLogParser(GenericParser):
+    """Parser for NginX error logs."""
+
     def __init__(self, file_path_regex=None,
                  log_format_regex=None, top_dir=None):
+        """
+        Init method.
+
+        Args:
+            file_path_regex (str): the regex to find the log files.
+            log_format_regex (str): the regex to parse the log files.
+            top_dir (str): the path to the root directory containing the logs.
+
+        Defaults:
+            file_path_regex: r'error.log'
+            log_format_regex: see source code.
+            top_dir: '/var/log/nginx'
+        """
         if file_path_regex is None:
             file_path_regex = re.compile(r'error.log')
         if log_format_regex is None:
@@ -106,24 +184,24 @@ class NginXErrorLogParser(GenericParser):
 
 
 class ApacheAccessLogParser(GenericParser):
-    pass
+    """Parser for Apache logs. Not implemented."""
 
 
 class ApacheErrorLogParser(GenericParser):
-    pass
+    """Parser for Apache error logs. Not implemented."""
 
 
 class UWSGIAccessLogParser(GenericParser):
-    pass
+    """Parser for UWSGI logs. Not implemented."""
 
 
 class UWSGIErrorLogParser(GenericParser):
-    pass
+    """Parser for UWSGI error logs. Not implemented."""
 
 
 class GunicornAccessLogParser(GenericParser):
-    pass
+    """Parser for Gunicorn logs. Not implemented."""
 
 
 class GunicornErrorLogParser(GenericParser):
-    pass
+    """Parser for Gunicorn error logs. Not implemented."""

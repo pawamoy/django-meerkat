@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""URL utils."""
+
 from __future__ import unicode_literals
 
 from django.conf import settings
@@ -7,19 +9,29 @@ from django.contrib.staticfiles import finders
 from django.core.urlresolvers import Resolver404, resolve
 
 
-def url_is_project_url(path, default='not_a_func'):
+def url_is_project_url(url, default='not_a_func'):
+    """
+    Check if URL is part of the current project's URLs.
+
+    Args:
+        url (str): URL to check.
+        default (callable): used to filter out some URLs attached to function.
+
+    Returns:
+
+    """
     try:
-        u = resolve(path)
+        u = resolve(url)
         if u and u.func != default:
             return True
     except Resolver404:
         static_url = settings.STATIC_URL
         static_url_wd = static_url.lstrip('/')
-        if path.startswith(static_url):
-            path = path[len(static_url):]
-        elif path.startswith(static_url_wd):
-            path = path[len(static_url_wd):]
-        if finders.find(path):
+        if url.startswith(static_url):
+            url = url[len(static_url):]
+        elif url.startswith(static_url_wd):
+            url = url[len(static_url_wd):]
+        if finders.find(url):
             return True
     return False
 
@@ -66,17 +78,24 @@ URL_WHITE_LIST = {
 
 
 def url_is(white_list):
+    """
+    Function generator.
+
+    Args:
+        white_list (dict): dict with PREFIXES and CONSTANTS keys (list values).
+
+    Returns:
+        func: a function to check if a URL is...
+    """
     def func(url):
-        prefixes = white_list.get('PREFIXES', None)
-        if prefixes is not None:
-            for prefix in prefixes:
-                if url.startswith(prefix):
-                    return True
-        constants = white_list.get('CONSTANTS', None)
-        if constants is not None:
-            for exact_url in constants:
-                if url == exact_url:
-                    return True
+        prefixes = white_list.get('PREFIXES', ())
+        for prefix in prefixes:
+            if url.startswith(prefix):
+                return True
+        constants = white_list.get('CONSTANTS', ())
+        for exact_url in constants:
+            if url == exact_url:
+                return True
         return False
     return func
 

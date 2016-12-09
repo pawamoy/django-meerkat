@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+"""
+Statistics methods.
+
+This modules stores the functions to compute statistics used by charts.
+Typically, these data will be used in series for Highcharts charts.
+"""
+
 from __future__ import unicode_literals
 
 from collections import Counter
@@ -12,6 +19,15 @@ from meerkat.utils.url import (
 
 
 def status_codes_stats(logs):
+    """
+    Get stats for status codes.
+
+    Args:
+        logs (list): logs data to use.
+
+    Returns:
+        dict: status code as key, number of apparition as value.
+    """
     stats = {k: 0 for k in distinct(
         (l['status_code'] for l in logs))}
     for log_line in logs:
@@ -20,6 +36,15 @@ def status_codes_stats(logs):
 
 
 def status_codes_by_date_stats(logs):
+    """
+    Get stats for status codes by date.
+
+    Args:
+        logs (list): logs data to use.
+
+    Returns:
+        list: status codes + date grouped by type: 2xx, 3xx, 4xx, 5xx, attacks.
+    """
     stats = {}
     for req in logs:
         date = '%s/%s/%s' % (req['day'], req['month'], req['year'])
@@ -60,6 +85,15 @@ def status_codes_by_date_stats(logs):
 
 
 def most_visited_pages_stats(logs):
+    """
+    Get stats for most visited pages.
+
+    Args:
+        logs (list): logs data to use.
+
+    Returns:
+        dict: more_than_10 and less_than_10: list of dict (bound + url list).
+    """
     stats = {'more_than_10': [], 'less_than_10': None}
     urls = [u for u in (l['url'].lstrip('/').rstrip(' ')
                         for l in logs)

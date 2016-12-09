@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""URLs for log submodule."""
+
 from __future__ import absolute_import, unicode_literals
 
 from django.conf.urls import include, url
@@ -10,6 +12,15 @@ from .views import (
 
 
 def logs_urlpatterns(admin_view):
+    """
+    Return the URL patterns for the logs views.
+
+    Args:
+        admin_view (callable): admin_view method from an AdminSite instance.
+
+    Returns:
+        list: the URL patterns for the logs views.
+    """
     logs_view = LogsView.as_view()
     return [
         url(r'^$',

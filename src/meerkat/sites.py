@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+Admin sites definitions.
+
+Currently just one DashboardSite.
+"""
+
 from __future__ import unicode_literals
 
 from django.conf.urls import include, url
@@ -14,7 +20,14 @@ from meerkat.logs.views import (
 
 class DashboardSite(AdminSite):
     """A Django AdminSite to allow registering custom dashboard views."""
+
     def get_urls(self):
+        """
+        Get urls method.
+
+        Returns:
+            list: the list of url objects.
+        """
         urls = super(DashboardSite, self).get_urls()
         custom_urls = [
             url(r'^$',

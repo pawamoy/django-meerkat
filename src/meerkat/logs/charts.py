@@ -1,17 +1,26 @@
 # -*- coding: utf-8 -*-
 
+"""
+Chart methods.
+
+This module contains the methods that will build the chart dictionaries
+from data.
+"""
+
 from __future__ import unicode_literals
 
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from meerkat.logs.data import STATUS_CODES
-from meerkat.logs.parsers import NginXAccessLogParser
-from meerkat.logs.stats import most_visited_pages_stats, status_codes_stats
-from meerkat.utils.url import url_is_asset, url_is_false_negative, url_is_old
+from ..utils.url import url_is_asset, url_is_false_negative, url_is_old
+
+from .data import STATUS_CODES
+from .parsers import NginXAccessLogParser
+from .stats import most_visited_pages_stats, status_codes_stats
 
 
 def status_codes_chart():
+    """Chart for status codes."""
     filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
     format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
     top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
@@ -63,6 +72,7 @@ def status_codes_chart():
 
 
 def status_codes_by_date_chart():
+    """Chart for status codes by date."""
     return {
         'chart': {
             'type': 'area',
@@ -85,6 +95,7 @@ def status_codes_by_date_chart():
 
 
 def most_visited_pages_legend_chart():
+    """Chart for most visited pages legend."""
     return {
         'chart': {
             'type': 'bar',
@@ -141,6 +152,7 @@ def most_visited_pages_legend_chart():
 
 
 def most_visited_pages_charts():
+    """Chart for most visited pages."""
     filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
     format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
     top_dir = getattr(settings, 'LOGS_TOP_DIR', None)

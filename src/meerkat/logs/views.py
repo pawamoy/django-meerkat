@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Views for logs submodule."""
+
 from __future__ import unicode_literals
 
 from django.utils.translation import ugettext_lazy as _
@@ -14,6 +16,8 @@ from meerkat.logs.boxes import (
 
 
 class HomeView(DashboardView):
+    """Main view. Parent class and entry point for other views."""
+
     template_name = 'meerkat/main.html'
     crumbs = (
         {'url': 'admin:index', 'name': _('Home')},
@@ -22,6 +26,8 @@ class HomeView(DashboardView):
 
 
 class LogsMenu(HomeView):
+    """View for logs menu."""
+
     crumbs = (
         {'url': 'admin:logs', 'name': 'Logs analysis'},
     )
@@ -29,6 +35,8 @@ class LogsMenu(HomeView):
 
 
 class LogsStatusCodes(LogsMenu):
+    """View for status codes."""
+
     crumbs = (
         {'url': 'admin:logs_status_codes', 'name': _('Status codes')},
     )
@@ -36,6 +44,8 @@ class LogsStatusCodes(LogsMenu):
 
 
 class LogsStatusCodesByDate(LogsMenu):
+    """View for status codes by date."""
+
     crumbs = (
         {'url': 'admin:logs_status_code_by_date',
          'name': _('Status codes by date')},
@@ -45,6 +55,8 @@ class LogsStatusCodesByDate(LogsMenu):
 
 
 class LogsMostVisitedPages(LogsMenu):
+    """View for most visited pages."""
+
     crumbs = (
         {'url': 'admin:logs_most_visited_pages',
          'name': _('Most visited pages')},
@@ -55,11 +67,24 @@ class LogsMostVisitedPages(LogsMenu):
 
 
 class LogsView(LogsMenu):
+    """View for logs pages."""
+
     crumbs = (
         {'url': 'admin:logs', 'name': 'Logs'},
     )
 
     def get(self, request, *args, **kwargs):
+        """
+        Allow to pass GET parameters for pagination.
+
+        Args:
+            request (request): the django request.
+            *args (): request arguments.
+            **kwargs (): optional year, month, day and hour, and more.
+
+        Returns:
+            the rendered django view.
+        """
         self.extra_context = {
             'year': kwargs.pop('year', None),
             'month': kwargs.pop('month', None),

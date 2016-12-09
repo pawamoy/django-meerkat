@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
-"""  # NOQA
+r"""# NOQA.
+
+Some information and hints about logs and log formats.
+
 Logs analysis: https://www.wikiwand.com/en/Log_analysis
 Make use of database models to avoid parsing logs again and again.
 Also think to log rotation and archiving.
+
 Real-time/past analysis:
     - Number of visits and number of unique visitors
     - Visit duration and last visits
@@ -34,8 +38,10 @@ NCSA Common log format (https://www.wikiwand.com/en/Common_Log_Format):
     "GET /apache_pb.gif HTTP/1.0" is the request line from the client. The method GET, /apache_pb.gif the resource requested, and HTTP/1.0 the HTTP protocol.
     200 is the HTTP status code returned to the client. 2xx is a successful response, 3xx a redirection, 4xx a client error, and 5xx a server error.
     2326 is the size of the object returned to the client, measured in bytes.
+
 Apache log examples:
     https://ossec-docs.readthedocs.io/en/latest/log_samples/apache/apache.html
+
 Apache error-log variables:
     %% 	        The percent sign
     %a 	        Client IP address and port of the request
@@ -63,6 +69,7 @@ Apache error-log variables:
     %V 	        The server name of the server serving the request according to the UseCanonicalName setting.
     \           (backslash space) Non-field delimiting space
     %           (percent space) Field delimiter (no output)
+
 Gunicorn log variables:
     %(h)s   remote address
     %(l)s   '-'
@@ -84,6 +91,7 @@ Gunicorn log variables:
     %(p)s   process ID
     %(i)s   request header
     %(o)s   response header
+
 uWSGI log variables:
     %(uri)          REQUEST_URI
     %(method)       REQUEST_METHOD
@@ -124,6 +132,7 @@ uWSGI log variables:
     %(tmsecs)       timestamp of the start of the request in milliseconds since the epoch (since 1.9.21)
     %(tmicros)      timestamp of the start of the request in microseconds since the epoch (since 1.9.21)
     %(var.XXX)      the content of request variable XXX (like var.PATH_INFO, available from 1.9.21)
+
 NginX log format:
     $ancient_browser            equals the value set by the ancient_browser_value directive, if a browser was identified as ancient
     $arg_                       argument in the request line
@@ -248,10 +257,10 @@ NginX log format:
     $upstream_response_time     time between establishing a connection and receiving the last byte of the response body from the upstream server
     $upstream_status            keeps status code of the response obtained from the upstream server. Status codes of several responses are separated by commas and colons like addresses in the $upstream_addr variable
     $uri                        current URI in request, normalized. The value of $uri may change during request processing, e.g. when doing internal redirects, or when using index files.
+
 NginX error log format:
     YYYY/MM/DD HH:MM:SS [LEVEL] PID#TID: *CID MESSAGE
     With PID and TID being the logging process and thread id
     and CID a number identifying a (probably proxied) connection,
     probably a counter. The *CID part is optional.
-
 """
