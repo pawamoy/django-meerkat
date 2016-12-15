@@ -13,26 +13,25 @@ Meerkat
 |gitter|
 
 
-.. |travis| image:: https://travis-ci.org/pawamoy/django-meerkat.svg?branch=master
+.. |travis| image:: https://travis-ci.org/Pawamoy/django-meerkat.svg?branch=master
     :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/pawamoy/django-meerkat/
+    :target: https://travis-ci.org/Pawamoy/django-meerkat/
 
-.. |codecov| image:: https://codecov.io/github/pawamoy/django-meerkat/coverage.svg?branch=master
+.. |codecov| image:: https://codecov.io/github/Pawamoy/django-meerkat/coverage.svg?branch=master
     :alt: Coverage Status
-    :target: https://codecov.io/github/pawamoy/django-meerkat/
+    :target: https://codecov.io/github/Pawamoy/django-meerkat/
 
-.. |landscape| image:: https://landscape.io/github/pawamoy/django-meerkat/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/pawamoy/django-meerkat/
+.. |landscape| image:: https://landscape.io/github/Pawamoy/django-meerkat/master/landscape.svg?style=flat
     :alt: Code Quality Status
-
+    :target: https://landscape.io/github/Pawamoy/django-meerkat/
 
 .. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
-    :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
     :alt: Updates
+    :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
 
-.. |gitter| image:: https://badges.gitter.im/pawamoy/django-meerkat.svg
-    :alt: Join the chat at https://gitter.im/pawamoy/django-meerkat
-    :target: https://gitter.im/pawamoy/django-meerkat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+.. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
+    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
+    :target: https://gitter.im/Pawamoy/django-meerkat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 .. |version| image:: https://img.shields.io/pypi/v/django-meerkat.svg?style=flat
     :alt: PyPI Package latest release
