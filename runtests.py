@@ -21,7 +21,7 @@ try:
                 'ENGINE': 'django.db.backends.sqlite3',
             }
         },
-        ROOT_URLCONF='accesscontrol.urls',
+        ROOT_URLCONF='meerkat.urls',
         INSTALLED_APPS=[
             'django.contrib.auth',
             'django.contrib.contenttypes',
