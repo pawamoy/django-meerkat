@@ -55,7 +55,7 @@
   </div>
 
   <p id="total" class="bold">{% trans "Total requests:" %} {{ ctxt.total }}</p>
-  {% include "dashboard/partials/logs_pagination.html" with logs=ctxt.logs only %}
+  {% include "meerkat/logs/logs_pagination.html" with logs=ctxt.logs only %}
   <hr>
   <ul>
     <li>
@@ -99,7 +99,7 @@
     </table>
   </div>
 
-  {% include "dashboard/partials/logs_pagination.html" with logs=ctxt.logs only %}
+  {% include "meerkat/logs/logs_pagination.html" with logs=ctxt.logs only %}
 {% endwith %}
 
 <script>
