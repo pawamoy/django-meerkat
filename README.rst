@@ -8,7 +8,6 @@ Meerkat
 
 |travis|
 |codacy|
-|landscape|
 |version|
 |wheel|
 |pyup|
@@ -18,10 +17,6 @@ Meerkat
 .. |travis| image:: https://travis-ci.org/pawamoy/django-meerkat.svg?branch=master
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/pawamoy/django-meerkat/
-
-.. |landscape| image:: https://landscape.io/github/pawamoy/django-meerkat/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/pawamoy/django-meerkat/
-    :alt: Code Quality Status
 
 .. |codacy| image:: https://api.codacy.com/project/badge/Grade/REPLACE_WITH_PROJECT_ID
     :target: https://www.codacy.com/app/pawamoy/django-meerkat/
