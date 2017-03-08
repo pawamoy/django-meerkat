@@ -5,8 +5,7 @@ Meerkat
 .. start-badges
 
 |travis|
-|codecov|
-|landscape|
+|codacy|
 |version|
 |wheel|
 |pyup|
@@ -17,17 +16,13 @@ Meerkat
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/Pawamoy/django-meerkat/
 
-.. |codecov| image:: https://codecov.io/github/Pawamoy/django-meerkat/coverage.svg?branch=master
-    :alt: Coverage Status
-    :target: https://codecov.io/github/Pawamoy/django-meerkat/
+.. |codacy| image:: https://api.codacy.com/project/badge/Grade/REPLACE_WITH_PROJECT_ID
+    :target: https://www.codacy.com/app/pawamoy/django-meerkat/
+    :alt: Codacy Code Quality Status
 
-.. |landscape| image:: https://landscape.io/github/Pawamoy/django-meerkat/master/landscape.svg?style=flat
-    :alt: Code Quality Status
-    :target: https://landscape.io/github/Pawamoy/django-meerkat/
-
-.. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
+.. |pyup| image:: https://pyup.io/account/repos/github/pawamoy/django-meerkat/shield.svg
+    :target: https://pyup.io/account/repos/github/pawamoy/django-meerkat/
     :alt: Updates
-    :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
 
 .. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
     :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
@@ -51,7 +46,7 @@ License
 
 Software licensed under `ISC`_ license.
 
-.. _ISC : https://www.isc.org/downloads/software-support-policy/isc-license/
+.. _ISC: https://www.isc.org/downloads/software-support-policy/isc-license/
 
 Installation
 ============
