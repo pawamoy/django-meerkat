@@ -27,7 +27,6 @@ Meerkat
     :target: https://landscape.io/github/pawamoy/django-meerkat/
     :alt: Code Quality Status
 
-
 .. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
     :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
     :alt: Updates
@@ -66,7 +65,8 @@ Installation
 Documentation
 =============
 
-https://github.com/pawamoy/django-meerkat/wiki
+http://django-meerkat.readthedocs.io/en/latest/
+
 
 Development
 ===========
