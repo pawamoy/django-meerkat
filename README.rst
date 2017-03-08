@@ -63,7 +63,8 @@ Installation
 Documentation
 =============
 
-https://github.com/Pawamoy/django-meerkat/wiki
+http://django-meerkat.readthedocs.io/en/latest/
+
 
 Development
 ===========
