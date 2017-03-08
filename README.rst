@@ -19,11 +19,11 @@ Meerkat
     :target: https://travis-ci.org/pawamoy/django-meerkat/
 
 .. |codacy| image:: https://api.codacy.com/project/badge/Grade/REPLACE_WITH_PROJECT_ID
-    :target: https://www.codacy.com/app/pawamoy/django-meerkat/
+    :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
     :alt: Codacy Code Quality Status
 
-.. |pyup| image:: https://pyup.io/account/repos/github/pawamoy/django-meerkat/shield.svg
-    :target: https://pyup.io/account/repos/github/pawamoy/django-meerkat/
+.. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
+    :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
     :alt: Updates
 
 .. |gitter| image:: https://badges.gitter.im/pawamoy/django-meerkat.svg
