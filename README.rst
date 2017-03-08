@@ -20,8 +20,8 @@ Meerkat
     :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
     :alt: Codacy Code Quality Status
 
-.. |pyup| image:: https://pyup.io/account/repos/github/pawamoy/django-meerkat/shield.svg
-    :target: https://pyup.io/account/repos/github/pawamoy/django-meerkat/
+.. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
+    :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
     :alt: Updates
 
 .. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
