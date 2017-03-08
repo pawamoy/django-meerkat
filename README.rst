@@ -16,8 +16,8 @@ Meerkat
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/Pawamoy/django-meerkat/
 
-.. |codacy| image:: https://api.codacy.com/project/badge/Grade/REPLACE_WITH_PROJECT_ID
-    :target: https://www.codacy.com/app/pawamoy/django-meerkat/
+.. |codacy| image:: https://api.codacy.com/project/badge/Grade/8d183046aad34b6a8ff081f1ff9b5156
+    :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
     :alt: Codacy Code Quality Status
 
 .. |pyup| image:: https://pyup.io/account/repos/github/pawamoy/django-meerkat/shield.svg
