@@ -31,7 +31,7 @@ default_context:
     full_name:                       'Timothee Mazzucotelli'
     github_username:                 'pawamoy'
     gitter:                          'yes'
-    landscape:                       'yes'
+    landscape:                       'no'
     package_name:                    'meerkat'
     project_name:                    'Meerkat'
     project_short_description:       'Security audit tool for Django sites'
