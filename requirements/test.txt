@@ -4,6 +4,6 @@ pytest==3.0.6
 pytest-travis-fold
 pytest-cov==2.4.0
 
-pytest-django
+pytest-django==3.1.2
 django-fake-model
 
