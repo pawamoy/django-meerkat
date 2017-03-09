@@ -1,6 +1,6 @@
-=======
-Meerkat
-=======
+==============
+django-meerkat
+==============
 
 .. start-badges
 
@@ -31,8 +31,8 @@ Meerkat
     :alt: Updates
 
 .. |gitter| image:: https://badges.gitter.im/pawamoy/django-meerkat.svg
-    :target: https://gitter.im/pawamoy/django-meerkat
-    :alt: Join the chat at https://gitter.im/pawamoy/django-meerkat
+    :target: https://gitter.im/Pawamoy/django-meerkat
+    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
 
 .. |version| image:: https://img.shields.io/pypi/v/django-meerkat.svg?style=flat
     :target: https://pypi.python.org/pypi/django-meerkat/
