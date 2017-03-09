@@ -1,5 +1,5 @@
 ==============
-django-meerkat
+Django Meerkat
 ==============
 
 .. start-badges
@@ -26,8 +26,8 @@ django-meerkat
     :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
     :alt: Codacy Code Coverage
 
-.. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
-    :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
+.. |pyup| image:: https://pyup.io/repos/github/Pawamoy/django-meerkat/shield.svg
+    :target: https://pyup.io/repos/github/Pawamoy/django-meerkat/
     :alt: Updates
 
 .. |gitter| image:: https://badges.gitter.im/pawamoy/django-meerkat.svg
