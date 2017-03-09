@@ -5,36 +5,42 @@ Meerkat
 .. start-badges
 
 |travis|
-|codacy|
+|codacygrade|
+|codacycoverage|
 |version|
 |wheel|
 |pyup|
 |gitter|
 
 
-.. |travis| image:: https://travis-ci.org/Pawamoy/django-meerkat.svg?branch=master
-    :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/Pawamoy/django-meerkat/
 
-.. |codacy| image:: https://api.codacy.com/project/badge/Grade/8d183046aad34b6a8ff081f1ff9b5156
+.. |travis| image:: https://travis-ci.org/pawamoy/django-meerkat.svg?branch=master
+    :target: https://travis-ci.org/Pawamoy/django-meerkat/
+    :alt: Travis-CI Build Status
+
+.. |codacygrade| image:: https://api.codacy.com/project/badge/Grade/8d183046aad34b6a8ff081f1ff9b5156
     :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
     :alt: Codacy Code Quality Status
+
+.. |codacycoverage| image:: https://api.codacy.com/project/badge/Coverage/8d183046aad34b6a8ff081f1ff9b5156
+    :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
+    :alt: Codacy Code Coverage
 
 .. |pyup| image:: https://pyup.io/repos/github/pawamoy/django-meerkat/shield.svg
     :target: https://pyup.io/repos/github/pawamoy/django-meerkat/
     :alt: Updates
 
-.. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
-    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
-    :target: https://gitter.im/Pawamoy/django-meerkat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+.. |gitter| image:: https://badges.gitter.im/pawamoy/django-meerkat.svg
+    :target: https://gitter.im/pawamoy/django-meerkat
+    :alt: Join the chat at https://gitter.im/pawamoy/django-meerkat
 
 .. |version| image:: https://img.shields.io/pypi/v/django-meerkat.svg?style=flat
-    :alt: PyPI Package latest release
     :target: https://pypi.python.org/pypi/django-meerkat/
+    :alt: PyPI Package latest release
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/django-meerkat.svg?style=flat
-    :alt: PyPI Wheel
     :target: https://pypi.python.org/pypi/django-meerkat/
+    :alt: PyPI Wheel
 
 
 .. end-badges
