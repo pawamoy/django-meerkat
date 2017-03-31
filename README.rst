@@ -13,7 +13,6 @@ Django Meerkat
 |gitter|
 
 
-
 .. |travis| image:: https://travis-ci.org/pawamoy/django-meerkat.svg?branch=master
     :target: https://travis-ci.org/Pawamoy/django-meerkat/
     :alt: Travis-CI Build Status
@@ -30,10 +29,6 @@ Django Meerkat
     :target: https://pyup.io/repos/github/Pawamoy/django-meerkat/
     :alt: Updates
 
-.. |gitter| image:: https://badges.gitter.im/pawamoy/django-meerkat.svg
-    :target: https://gitter.im/Pawamoy/django-meerkat
-    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
-
 .. |version| image:: https://img.shields.io/pypi/v/django-meerkat.svg?style=flat
     :target: https://pypi.python.org/pypi/django-meerkat/
     :alt: PyPI Package latest release
@@ -41,6 +36,11 @@ Django Meerkat
 .. |wheel| image:: https://img.shields.io/pypi/wheel/django-meerkat.svg?style=flat
     :target: https://pypi.python.org/pypi/django-meerkat/
     :alt: PyPI Wheel
+
+.. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
+    :target: https://gitter.im/Pawamoy/django-meerkat
+    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
+
 
 
 .. end-badges
@@ -64,8 +64,9 @@ Installation
 Documentation
 =============
 
-http://django-meerkat.readthedocs.io/en/latest/
+`On ReadTheDocs`_
 
+.. _`On ReadTheDocs`: http://django-meerkat.readthedocs.io/
 
 Development
 ===========

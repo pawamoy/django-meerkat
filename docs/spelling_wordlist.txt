@@ -12,8 +12,9 @@ Indices
 docstrings
 django-meerkat
 meerkat
-pawamoy
-Meerkat
+Pawamoy
+django
+meerkat
 Timothee
 Mazzucotelli
 Django
