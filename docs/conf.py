@@ -6,6 +6,21 @@ from __future__ import unicode_literals
 
 import os
 
+import sys
+import django
+from django.conf import settings
+
+sys.path.insert(0, os.path.join(os.path.abspath('..'), 'src'))
+settings.configure(
+    INSTALLED_APPS=[
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sites',
+    ],
+    SITE_ID=1
+)
+django.setup()
+
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -35,8 +50,8 @@ version = release = u'0.1.0'
 pygments_style = 'trac'
 templates_path = ['.']
 extlinks = {
-    'issue': ('https://github.com/pawamoy/django-meerkat/issues/%s', '#'),
-    'pr': ('https://github.com/pawamoy/django-meerkat/pull/%s', 'PR #'),
+    'issue': ('https://github.com/Pawamoy/django-meerkat/issues/%s', '#'),
+    'pr': ('https://github.com/Pawamoy/django-meerkat/pull/%s', 'PR #'),
 }
 
 # on_rtd is whether we are on readthedocs.org

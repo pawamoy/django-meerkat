@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-r"""Meerkat package."""
+u"""Django Meerkat package."""
 
 __version__ = '0.1.0'
