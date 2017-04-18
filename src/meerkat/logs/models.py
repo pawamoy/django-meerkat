@@ -108,7 +108,7 @@ class GeolocationCheck(models.Model):
     not always be related to the same geolocation, which changes over time.
     """
 
-    ip_address = models.IPAddressField(
+    ip_address = models.GenericIPAddressField(
         verbose_name=_(''), unique=True)
     date = models.DateField(
         verbose_name=_(''), default=datetime.date.today)
@@ -154,8 +154,8 @@ class RequestLog(models.Model):
     """
 
     # General info
-    client_ip_address = models.IPAddressField(
-        verbose_name=_(''), blank=True)
+    client_ip_address = models.GenericIPAddressField(
+        verbose_name=_(''), blank=True, null=True)
     datetime = models.DateTimeField(
         verbose_name=_(''), blank=True)
     timezone = models.CharField(
