@@ -16,10 +16,13 @@ from __future__ import unicode_literals
 import datetime
 import threading
 import time
+import pytz
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.timezone import make_aware
 
+from dateutil import parser as dateutil_parser
 from meerkat.logs.parsers import NginXAccessLogParser
 from meerkat.utils.geolocation import ip_info
 
@@ -179,7 +182,7 @@ class RequestLog(models.Model):
     protocol = models.CharField(
         verbose_name=_(''), max_length=10, blank=True)
     port = models.PositiveIntegerField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_(''), blank=True, null=True)
     file_type = models.CharField(
         verbose_name=_(''), max_length=20, blank=True)
     https = models.BooleanField(
@@ -248,7 +251,7 @@ class RequestLog(models.Model):
     def __str__(self):
         return str(self.datetime)
 
-    def update_geolocation(self, since_days=10):
+    def update_geolocation(self, since_days=10, save=False):
         """
         Update the geolocation.
 
@@ -267,6 +270,8 @@ class RequestLog(models.Model):
             # If checked less than since_days ago, don't check again
             since_last = datetime.date.today() - last_check.date
             if since_last <= datetime.timedelta(days=since_days):
+                if save:
+                    self.save()
                 return False
 
             # Get or create geolocation object
@@ -277,6 +282,8 @@ class RequestLog(models.Model):
             if created:
                 last_check.geolocation = geolocation
                 self.geolocation = geolocation
+                self.save()
+            elif save:
                 self.save()
 
             # Update check time
@@ -318,6 +325,10 @@ class RequestLog(models.Model):
         top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
         parser = NginXAccessLogParser(filename_re, format_re, top_dir)
 
+        months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+                  'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+                  'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+
         def follow(f):
             f.seek(0, 2)
             while True:
@@ -328,14 +339,23 @@ class RequestLog(models.Model):
                 yield line
 
         def read_continuously():
-            with open('/home/pawantu/some_file.log') as f:
+            with open(parser.matching_files()[0]) as f:
                 for line in follow(f):
                     data = parser.parse_string(line)
-                    print(data)
-                    print('-------------------------------------')
+                    log_datetime = '%s%s%sT%s%s%s%s' % (
+                        data.pop('year'),
+                        months.get(data.pop('month')),
+                        data.pop('day'),
+                        data.pop('hour'),
+                        data.pop('minute'),
+                        data.pop('second'),
+                        data.get('timezone'))
+                    data['datetime'] = dateutil_parser.parse(log_datetime)
+                    data['client_ip_address'] = data.pop('ip_address')
+                    log_object = RequestLog(**data)
+                    log_object.update_geolocation(save=True)
 
-        t = threading.Thread(target=read_continuously)
-        t.daemon = True
-        t.start()
-        RequestLog.daemon = t
-        return t
+        RequestLog.daemon = threading.Thread(target=read_continuously)
+        RequestLog.daemon.daemon = True
+        RequestLog.daemon.start()
+        return RequestLog.daemon

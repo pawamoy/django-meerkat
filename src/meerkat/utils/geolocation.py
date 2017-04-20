@@ -19,8 +19,8 @@ def ip_info(ip):
     """
     # Geoloc updated up to once a week:
     # http://ipinfo.io/data#geolocation-data
-    response = requests.get('http://ipinfo.io/%s' % ip)
-    return json.loads(response.content)
+    response = requests.get('http://ipinfo.io/%s' % ip).json()
+    return response
 
 
 def ip_geoloc(ip, data=None):

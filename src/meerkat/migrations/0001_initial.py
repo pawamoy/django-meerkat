@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                 ('server', models.TextField(blank=True, verbose_name='')),
                 ('verb', models.CharField(blank=True, max_length=10, verbose_name='')),
                 ('protocol', models.CharField(blank=True, max_length=10, verbose_name='')),
-                ('port', models.PositiveIntegerField(blank=True, verbose_name='')),
+                ('port', models.PositiveIntegerField(blank=True, null=True, verbose_name='')),
                 ('file_type', models.CharField(blank=True, max_length=20, verbose_name='')),
                 ('https', models.BooleanField(default=False, verbose_name='')),
                 ('bytes_sent', models.IntegerField(blank=True, verbose_name='')),
