@@ -337,4 +337,5 @@ class RequestLog(models.Model):
         t = threading.Thread(target=read_continuously)
         t.daemon = True
         t.start()
+        RequestLog.daemon = t
         return t
