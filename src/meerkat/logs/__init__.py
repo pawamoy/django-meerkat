@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-r"""# NOQA.
+# pylama:skip=1
+r"""
 
 Some information and hints about logs and log formats.
 

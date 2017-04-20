@@ -28,54 +28,38 @@ from .stats import status_codes_by_date_stats
 class BoxLogsLinks(Box):
     """The menu for log views."""
 
-    def get_title(self):
-        """Get the title."""
-        return _('Logs analysis')
-
-    def get_description(self):
-        """Get the description."""
-        return _('The machine uses a program called "web server" to serve the '
-                 'website over the internet. This web server records every '
-                 'request sent by clients, with detailed information attached.'
-                 ' These logs can be parsed to compute some statistical data.')
-
-    def get_template(self):
-        """Get the template."""
-        return 'meerkat/logs/links.html'
+    title = _('Logs analysis')
+    description = _(
+        'The machine uses a program called "web server" to serve the '
+        'website over the internet. This web server records every '
+        'request sent by clients, with detailed information attached.'
+        ' These logs can be parsed to compute some statistical data.')
+    template = 'meerkat/logs/links.html'
 
 
 class BoxLogsStatusCodes(Box):
     """The status codes widget."""
 
-    def get_title(self):
-        """Get the title."""
-        return _('Status codes')
-
-    def get_items(self):
-        """Get the items."""
-        return [
-            Item(value=status_codes_chart(),
-                 display=Item.AS_HIGHCHARTS),
-            Item('status-code-description', _('Descriptions'),
-                 [('%s %s' % (k, v['name']), v['desc'])
-                  for k, v in sorted(STATUS_CODES.items())],
-                 display=Item.AS_TABLE,
-                 classes='table-hover table-striped')
-        ]
+    title = _('Status codes')
+    widgets = [
+        Item(value=status_codes_chart(),
+             display=Item.AS_HIGHCHARTS),
+        Item('status-code-description', _('Descriptions'),
+             [('%s %s' % (k, v['name']), v['desc'])
+              for k, v in sorted(STATUS_CODES.items())],
+             display=Item.AS_TABLE,
+             classes='table-hover table-striped')
+    ]
 
 
 class BoxLogsStatusCodesByDate(Box):
     """The status codes by date widget."""
 
-    def get_title(self):
-        """Get the title."""
-        return _('Status codes by date')
+    title = _('Status codes by date')
+    template = 'meerkat/logs/status_codes_by_date.html'
 
-    def get_template(self):
-        """Get the template."""
-        return 'meerkat/logs/status_codes_by_date.html'
-
-    def get_context(self):
+    @property
+    def context(self):
         """Get the context."""
         filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
         format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
@@ -126,48 +110,40 @@ class BoxLogsStatusCodesByDate(Box):
 class BoxLogsMostVisitedPagesLegend(Box):
     """The most visited pages legend."""
 
-    def get_items(self):
-        """Get the items."""
-        return [Item(html_id='legend_chart',
-                     value=most_visited_pages_legend_chart(),
-                     display=Item.AS_HIGHCHARTS)]
+    widgets = [Item(
+        html_id='legend_chart',
+        value=most_visited_pages_legend_chart(),
+        display=Item.AS_HIGHCHARTS)]
 
 
 class BoxLogsMostVisitedPages(Box):
     """The most visited pages legend."""
 
-    def get_title(self):
-        """Get the title."""
-        return _('Most visited pages')
+    title = _('Most visited pages')
 
-    def get_items(self):
+    @property
+    def widgets(self):
         """Get the items."""
-        items = []
+        widgets = []
         for i, chart in enumerate(most_visited_pages_charts()):
-            items.append(Item(html_id='most_visited_chart_%d' % i,
-                              value=chart, display=Item.AS_HIGHCHARTS))
+            widgets.append(Item(html_id='most_visited_chart_%d' % i,
+                                value=chart, display=Item.AS_HIGHCHARTS))
 
-        return items
+        return widgets
 
 
 class BoxLogs(Box):
     """The logs views. Paging and filtering options."""
 
-    def get_title(self):
-        """Get the title."""
-        return _('Logs list')
+    title = _('Logs list')
+    description = _(
+        'Logs are stored in files on the machine genida.unistra.fr. '
+        'This page allows you to consult them with pagination and '
+        'date filters.')
+    template = 'meerkat/logs/logs_list.html'
 
-    def get_description(self):
-        """Get the description."""
-        return _('Logs are stored in files on the machine genida.unistra.fr. '
-                 'This page allows you to consult them with pagination and '
-                 'date filters.')
-
-    def get_template(self):
-        """Get the template."""
-        return 'meerkat/logs/logs_list.html'
-
-    def get_context(self):
+    @property
+    def context(self):
         """Get the context."""
         filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
         format_re = getattr(settings, 'LOGS_FORMAT_RE', None)

@@ -16,13 +16,13 @@ from __future__ import unicode_literals
 import datetime
 import threading
 import time
-import pytz
+
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.utils.timezone import make_aware
 
 from dateutil import parser as dateutil_parser
+
 from meerkat.logs.parsers import NginXAccessLogParser
 from meerkat.utils.geolocation import ip_info
 

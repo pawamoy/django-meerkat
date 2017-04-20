@@ -2,4 +2,4 @@
 
 """Models."""
 
-from .logs.models import *
+from .logs.models import Geolocation, GeolocationCheck, RequestLog

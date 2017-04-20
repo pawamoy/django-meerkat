@@ -2,8 +2,6 @@
 
 """Geolocation utils."""
 
-import json
-
 import requests
 
 

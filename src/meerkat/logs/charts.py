@@ -171,9 +171,9 @@ def most_visited_pages_charts():
                 'height': 15 * len(subset) + 100
             },
             'title': {
-                'text': _('More than %d times' % bound) if i == 0 else
-                _('Between %d and %d times') % (
-                    bound, stats['more_than_10'][i - 1]['bound'])
+                'text': {0: _('More than %d times') % bound}.get(
+                    i, _('Between %d and %d times') % (
+                        bound, stats['more_than_10'][i - 1]['bound']))
             },
             'xAxis': {
                 'categories': [u for (c, u, v) in subset],

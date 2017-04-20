@@ -52,7 +52,7 @@ def status_codes_by_date_stats(logs):
             stats[date] = {'date': date, 'requests': []}
         stats[date]['requests'].append(req)
 
-    for k, v in stats.items():
+    for v in stats.values():
         v['unique_ip'] = len(distinct(r['ip_address'] for r in v['requests']))
         v['2xx'] = 0
         v['3xx'] = 0
@@ -94,7 +94,7 @@ def most_visited_pages_stats(logs):
     Returns:
         dict: more_than_10 and less_than_10: list of dict (bound + url list).
     """
-    stats = {'more_than_10': [], 'less_than_10': None}
+    stats = {'more_than_10': [], 'less_than_10': {}}
     urls = [u for u in (l['url'].lstrip('/').rstrip(' ')
                         for l in logs)
             if not url_is_ignored(u)]

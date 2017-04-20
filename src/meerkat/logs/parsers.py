@@ -205,4 +205,3 @@ class GunicornAccessLogParser(GenericParser):
 
 class GunicornErrorLogParser(GenericParser):
     """Parser for Gunicorn error logs. Not implemented."""
-
