@@ -11,8 +11,6 @@ Of course, these tables have to be updated in the background and in real-time,
 which is the difficulty here. Work is in progress.
 """
 
-from __future__ import unicode_literals
-
 import datetime
 import threading
 import time
@@ -23,8 +21,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from dateutil import parser as dateutil_parser
 
-from meerkat.logs.parsers import NginXAccessLogParser
-from meerkat.utils.geolocation import ip_info
+from ..utils.geolocation import ip_info
+from .parsers import NginXAccessLogParser
 
 
 # Define what information retrievable from the logs are pertinent

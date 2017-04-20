@@ -7,8 +7,6 @@ Contains a list of the different status codes and their information,
 obtained on Wikipedia.
 """
 
-from __future__ import unicode_literals
-
 from django.utils.translation import ugettext as _
 
 

@@ -7,13 +7,11 @@ This modules stores the functions to compute statistics used by charts.
 Typically, these data will be used in series for Highcharts charts.
 """
 
-from __future__ import unicode_literals
-
 from collections import Counter
 
-from meerkat.utils.list import distinct
-from meerkat.utils.time import log_date_to_python_date, ms_since_epoch
-from meerkat.utils.url import (
+from ..utils.list import distinct
+from ..utils.time import log_date_to_python_date, ms_since_epoch
+from ..utils.url import (
     url_is_asset, url_is_common_asset, url_is_false_negative, url_is_ignored,
     url_is_old, url_is_project_url)
 

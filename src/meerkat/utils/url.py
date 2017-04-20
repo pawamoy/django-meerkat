@@ -9,33 +9,6 @@ from django.contrib.staticfiles import finders
 from django.core.urlresolvers import Resolver404, resolve
 
 
-def url_is_project_url(url, default='not_a_func'):
-    """
-    Check if URL is part of the current project's URLs.
-
-    Args:
-        url (str): URL to check.
-        default (callable): used to filter out some URLs attached to function.
-
-    Returns:
-
-    """
-    try:
-        u = resolve(url)
-        if u and u.func != default:
-            return True
-    except Resolver404:
-        static_url = settings.STATIC_URL
-        static_url_wd = static_url.lstrip('/')
-        if url.startswith(static_url):
-            url = url[len(static_url):]
-        elif url.startswith(static_url_wd):
-            url = url[len(static_url_wd):]
-        if finders.find(url):
-            return True
-    return False
-
-
 URL_WHITE_LIST = {
     'ASSETS': {
         'PREFIXES': (
@@ -75,6 +48,33 @@ URL_WHITE_LIST = {
         )
     }
 }
+
+
+def url_is_project_url(url, default='not_a_func'):
+    """
+    Check if URL is part of the current project's URLs.
+
+    Args:
+        url (str): URL to check.
+        default (callable): used to filter out some URLs attached to function.
+
+    Returns:
+
+    """
+    try:
+        u = resolve(url)
+        if u and u.func != default:
+            return True
+    except Resolver404:
+        static_url = settings.STATIC_URL
+        static_url_wd = static_url.lstrip('/')
+        if url.startswith(static_url):
+            url = url[len(static_url):]
+        elif url.startswith(static_url_wd):
+            url = url[len(static_url_wd):]
+        if finders.find(url):
+            return True
+    return False
 
 
 def url_is(white_list):

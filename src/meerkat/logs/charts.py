@@ -7,8 +7,6 @@ This module contains the methods that will build the chart dictionaries
 from data.
 """
 
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
@@ -37,11 +35,10 @@ def status_codes_chart():
         'subtitle': {
             'text': ''
         },
-        # 'tooltip': {
-        #   # FIXME: find a way to handle javascript code
-        #   'formatter': "return this.y + '/' + this.total + ' (' + "
-        #                "Highcharts.numberFormat(this.percentage, 1) + '%)';"
-        # },
+        'tooltip': {
+          'formatter': "return this.y + '/' + this.total + ' (' + "
+                       "Highcharts.numberFormat(this.percentage, 1) + '%)';"
+        },
         'legend': {
             'enabled': True,
         },

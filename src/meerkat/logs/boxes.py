@@ -7,7 +7,6 @@ This module defines the boxes to be used in the admin interface by
 django-suit-dashboard package.
 """
 
-from __future__ import absolute_import, unicode_literals
 
 import json
 
@@ -15,8 +14,9 @@ from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.utils.translation import ugettext as _
 
-from suit_dashboard.box import Box, Item
+from suit_dashboard import Box, Widget
 
+from ..utils.time import month_name_to_number
 from .charts import (
     most_visited_pages_charts, most_visited_pages_legend_chart,
     status_codes_by_date_chart, status_codes_chart)
@@ -32,8 +32,8 @@ class BoxLogsLinks(Box):
     description = _(
         'The machine uses a program called "web server" to serve the '
         'website over the internet. This web server records every '
-        'request sent by clients, with detailed information attached.'
-        ' These logs can be parsed to compute some statistical data.')
+        'request sent by clients, with detailed information attached. '
+        'These logs can be parsed to compute some statistical data.')
     template = 'meerkat/logs/links.html'
 
 
@@ -41,15 +41,21 @@ class BoxLogsStatusCodes(Box):
     """The status codes widget."""
 
     title = _('Status codes')
-    widgets = [
-        Item(value=status_codes_chart(),
-             display=Item.AS_HIGHCHARTS),
-        Item('status-code-description', _('Descriptions'),
-             [('%s %s' % (k, v['name']), v['desc'])
-              for k, v in sorted(STATUS_CODES.items())],
-             display=Item.AS_TABLE,
-             classes='table-hover table-striped')
-    ]
+
+    @property
+    def widgets(self):
+        status_codes = status_codes_chart()
+        return [
+            Widget(content=json.dumps(status_codes),
+                   template='meerkat/widgets/highcharts.html',
+                   js_code=['tooltip.formatter']),
+            Widget(html_id='status-code-description',
+                   name=_('Descriptions'),
+                   content=[('%s %s' % (k, v['name']), v['desc'])
+                            for k, v in sorted(STATUS_CODES.items())],
+                   template='meerkat/widgets/table.html',
+                   classes='table-hover table-striped')
+        ]
 
 
 class BoxLogsStatusCodesByDate(Box):
@@ -110,10 +116,10 @@ class BoxLogsStatusCodesByDate(Box):
 class BoxLogsMostVisitedPagesLegend(Box):
     """The most visited pages legend."""
 
-    widgets = [Item(
+    widgets = [Widget(
         html_id='legend_chart',
-        value=most_visited_pages_legend_chart(),
-        display=Item.AS_HIGHCHARTS)]
+        content=json.dumps(most_visited_pages_legend_chart()),
+        template='meerkat/widgets/highcharts.html')]
 
 
 class BoxLogsMostVisitedPages(Box):
@@ -126,8 +132,9 @@ class BoxLogsMostVisitedPages(Box):
         """Get the items."""
         widgets = []
         for i, chart in enumerate(most_visited_pages_charts()):
-            widgets.append(Item(html_id='most_visited_chart_%d' % i,
-                                value=chart, display=Item.AS_HIGHCHARTS))
+            widgets.append(Widget(html_id='most_visited_chart_%d' % i,
+                                  content=json.dumps(chart),
+                                  template='meerkat/widgets/highcharts.html'))
 
         return widgets
 
@@ -160,7 +167,7 @@ class BoxLogs(Box):
                 context['available_days'] = self.get_available_days(by_month)
                 if hasattr(self, 'day') and self.day:
                     by_day = self.logs_by_day(by_month, self.day)
-                    context['available_hours'] = self.get_available_hours(by_day)  # NOQA
+                    context['available_hours'] = self.get_available_hours(by_day)  # noqa
                     if hasattr(self, 'hour') and self.hour:
                         logs = self.logs_by_hour(by_day, self.hour)
                     else:
@@ -185,32 +192,8 @@ class BoxLogs(Box):
 
         return context
 
-    def month_name_to_number(self, month):
-        """
-        Convert a month name (MMM) to its number (01-12).
-
-        Args:
-            month ():
-
-        Returns:
-
-        """
-        return {
-            'Jan': '01',
-            'Feb': '02',
-            'Mar': '03',
-            'Apr': '04',
-            'May': '05',
-            'Jun': '06',
-            'Jul': '07',
-            'Aug': '08',
-            'Sep': '09',
-            'Oct': '10',
-            'Nov': '11',
-            'Dec': '12',
-        }.get(month)
-
-    def get_available_years(self, logs):
+    @staticmethod
+    def get_available_years(logs):
         """
         Get the available years from the logs.
 
@@ -222,7 +205,8 @@ class BoxLogs(Box):
         """
         return sorted(set(l['year'] for l in logs))
 
-    def get_available_months(self, logs):
+    @staticmethod
+    def get_available_months(logs):
         """
         Get the available months from the logs.
 
@@ -232,10 +216,11 @@ class BoxLogs(Box):
         Returns:
             list: available months.
         """
-        return sorted([self.month_name_to_number(m) for m in set(
+        return sorted([month_name_to_number(m) for m in set(
             l['month'] for l in logs)])
 
-    def get_available_days(self, logs):
+    @staticmethod
+    def get_available_days(logs):
         """
         Get the available days from the logs.
 
@@ -247,7 +232,8 @@ class BoxLogs(Box):
         """
         return sorted(set(l['day'] for l in logs))
 
-    def get_available_hours(self, logs):
+    @staticmethod
+    def get_available_hours(logs):
         """
         Get the available hours from the logs.
 
@@ -259,7 +245,8 @@ class BoxLogs(Box):
         """
         return sorted(set(l['hour'] for l in logs))
 
-    def logs_by_year(self, logs, year):
+    @staticmethod
+    def logs_by_year(logs, year):
         """
         Get the logs for the given year.
 
@@ -272,7 +259,8 @@ class BoxLogs(Box):
         """
         return [l for l in logs if l['year'] == str(year)]
 
-    def logs_by_month(self, logs, month):
+    @staticmethod
+    def logs_by_month(logs, month):
         """
         Get the logs for the given month.
 
@@ -283,10 +271,10 @@ class BoxLogs(Box):
         Returns:
             list: the filtered log list.
         """
-        return [l for l in logs
-                if self.month_name_to_number(l['month']) == month]
+        return [l for l in logs if month_name_to_number(l['month']) == month]
 
-    def logs_by_day(self, logs, day):
+    @staticmethod
+    def logs_by_day(logs, day):
         """
         Get the logs for the given day.
 
@@ -299,7 +287,8 @@ class BoxLogs(Box):
         """
         return [l for l in logs if l['day'] == str(day)]
 
-    def logs_by_hour(self, logs, hour):
+    @staticmethod
+    def logs_by_hour(logs, hour):
         """
         Get the logs for the given hour.
 

@@ -18,7 +18,7 @@ def ms_since_epoch(dt):
     Returns:
         int: number of milliseconds.
     """
-    return (dt - datetime(1970, 1, 1).date()).total_seconds() * 1000
+    return (dt - datetime(1970, 1, 1)).total_seconds() * 1000
 
 
 def daterange(start_date, end_date):
@@ -73,3 +73,22 @@ def log_datetime_to_python_date(s):
         date: Python date object.
     """
     return log_datetime_to_python_datetime(s).date()
+
+
+def month_name_to_number(month, to_int=False):
+    """
+    Convert a month name (MMM) to its number (01-12).
+
+    Args:
+        month (str): 3-letters string describing month.
+        to_int (bool): cast number to int or not.
+
+    Returns:
+        str/int: the month's number (between 01 and 12).
+    """
+    number = {
+        'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05',
+        'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10',
+        'Nov': '11', 'Dec': '12',
+    }.get(month)
+    return int(number) if to_int else number

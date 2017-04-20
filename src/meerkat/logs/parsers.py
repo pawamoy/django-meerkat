@@ -7,32 +7,33 @@ This module provides a generic parser that you can customize with regular
 expressions to find the log files and to parse them.
 """
 
-from __future__ import unicode_literals
-
 import re
 from os import walk
-from os.path import join, relpath, sep
+from os.path import abspath, join, relpath, sep
 
-
-# FIXME: generic parser should give defaults to args, and use class
-# variables to initialize them. Then, subparsers should overwrite only the
-# class variables and not the init methods.
 
 class GenericParser(object):
     """Generic parser. Customize it with regular expressions."""
+
+    file_path_regex = re.compile(r'^$')
+    log_format_regex = re.compile(r'^$')
+    top_dir = ''
 
     def __init__(self, file_path_regex, log_format_regex, top_dir):
         """
         Init method.
 
         Args:
-            file_path_regex (str): the regex to find the log files.
-            log_format_regex (str): the regex to parse the log files.
+            file_path_regex (regex): the regex to find the log files.
+            log_format_regex (regex): the regex to parse the log files.
             top_dir (str): the path to the root directory containing the logs.
         """
-        self.file_path_regex = file_path_regex
-        self.log_format_regex = log_format_regex
-        self.top_dir = top_dir
+        if file_path_regex is not None:
+            self.file_path_regex = file_path_regex
+        if log_format_regex is not None:
+            self.log_format_regex = log_format_regex
+        if top_dir is not None:
+            self.top_dir = top_dir
         self._content = None
 
     @property
@@ -58,21 +59,19 @@ class GenericParser(object):
         matching = []
         matcher = self.file_path_regex
         pieces = self.file_path_regex.pattern.split(sep)
-        partial_matchers = map(
-            re.compile,
-            (sep.join(pieces[:i + 1]) for i in range(len(pieces))))
+        partial_matchers = list(map(re.compile, (
+            sep.join(pieces[:i + 1]) for i in range(len(pieces)))))
 
         for root, dirs, files in walk(self.top_dir, topdown=True):
             for i in reversed(range(len(dirs))):
-                dirname = relpath(
-                    join(root, dirs[i]), self.top_dir)
+                dirname = relpath(join(root, dirs[i]), self.top_dir)
                 dirlevel = dirname.count(sep)
                 if not partial_matchers[dirlevel].match(dirname):
                     del dirs[i]
 
             for filename in files:
                 if matcher.match(filename):
-                    matching.append(relpath(join(root, filename)))
+                    matching.append(abspath(join(root, filename)))
 
         return matching
 
@@ -108,79 +107,39 @@ class GenericParser(object):
 class NginXAccessLogParser(GenericParser):
     """Parser for NginX logs."""
 
-    def __init__(self, file_path_regex=None,
-                 log_format_regex=None, top_dir=None):
-        """
-        Init method.
-
-        Args:
-            file_path_regex (str): the regex to find the log files.
-            log_format_regex (str): the regex to parse the log files.
-            top_dir (str): the path to the root directory containing the logs.
-
-        Defaults:
-            file_path_regex: r'access.log'
-            log_format_regex: see source code.
-            top_dir: '/var/log/nginx'
-        """
-        if file_path_regex is None:
-            file_path_regex = re.compile(r'access.log')
-        # coderwall.com/p/snn1ag/regex-to-parse-your-default-nginx-access-logs
-        if log_format_regex is None:
-            log_format_regex = re.compile(
-                r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - '
-                r'\[(?P<day>\d{2})/(?P<month>[a-z]{3})/(?P<year>\d{4})'
-                r':(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
-                r'(?P<timezone>(\+|\-)\d{4})\] \"(?P<verb>(GET|POST)) '
-                r'(?P<url>.+)(?P<protocol>HTTP/(1\.0|1\.1|2\.0)") '
-                r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
-                r'(["](?P<referrer>(\-)|(.+))["]) (["](?P<user_agent>.+)["])',
-                re.IGNORECASE)
-        if top_dir is None:
-            top_dir = '/var/log/nginx'
-        super(NginXAccessLogParser, self).__init__(
-            file_path_regex, log_format_regex, top_dir)
+    file_path_regex = re.compile(r'access.log')
+    # coderwall.com/p/snn1ag/regex-to-parse-your-default-nginx-access-logs
+    log_format_regex = re.compile(
+        r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - '
+        r'\[(?P<day>\d{2})/(?P<month>[a-z]{3})/(?P<year>\d{4})'
+        r':(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
+        r'(?P<timezone>(\+|\-)\d{4})\] \"(?P<verb>(GET|POST)) '
+        r'(?P<url>.+)(?P<protocol>HTTP/(1\.0|1\.1|2\.0)") '
+        r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
+        r'(["](?P<referrer>(\-)|(.+))["]) (["](?P<user_agent>.+)["])',
+        re.IGNORECASE)
+    top_dir = '/var/log/nginx'
 
 
 class NginXErrorLogParser(GenericParser):
     """Parser for NginX error logs."""
 
-    def __init__(self, file_path_regex=None,
-                 log_format_regex=None, top_dir=None):
-        """
-        Init method.
-
-        Args:
-            file_path_regex (str): the regex to find the log files.
-            log_format_regex (str): the regex to parse the log files.
-            top_dir (str): the path to the root directory containing the logs.
-
-        Defaults:
-            file_path_regex: r'error.log'
-            log_format_regex: see source code.
-            top_dir: '/var/log/nginx'
-        """
-        if file_path_regex is None:
-            file_path_regex = re.compile(r'error.log')
-        if log_format_regex is None:
-            log_format_regex = re.compile(
-                # YYYY/MM/DD HH:MM:SS [LEVEL] PID#TID: *CID MESSAGE
-                r'(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2}) '
-                r'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
-                r'\[(?P<level>[a-z]*)\] (?P<pid>\d+)#(?P<tid>\d+): '
-                r'(\*(?P<cid>\d+) )?(?P<message>[^,]+)'
-                r'(, client: (?P<ip_address>[^,]+))?'
-                r'(, server: (?P<server>[^,]+))?'
-                r'(, request: (?P<verb>(GET|POST)) (?P<url>[^ ]+) '
-                r'(?P<protocol>HTTP/(1\.0|1\.1|2\.0)))?'
-                r'(, upstream: (?P<upstream>[^,]+))?'
-                r'(, host: (?P<host>[^,]+))?'
-                r'(, referrer: (?P<referrer>[^,]+))?$',
-                re.IGNORECASE)
-        if top_dir is None:
-            top_dir = 'var/log/nginx'
-        super(NginXErrorLogParser, self).__init__(
-            file_path_regex, log_format_regex, top_dir)
+    file_path_regex = re.compile(r'error.log')
+    log_format_regex = re.compile(
+        # YYYY/MM/DD HH:MM:SS [LEVEL] PID#TID: *CID MESSAGE
+        r'(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2}) '
+        r'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
+        r'\[(?P<level>[a-z]*)\] (?P<pid>\d+)#(?P<tid>\d+): '
+        r'(\*(?P<cid>\d+) )?(?P<message>[^,]+)'
+        r'(, client: (?P<ip_address>[^,]+))?'
+        r'(, server: (?P<server>[^,]+))?'
+        r'(, request: (?P<verb>(GET|POST)) (?P<url>[^ ]+) '
+        r'(?P<protocol>HTTP/(1\.0|1\.1|2\.0)))?'
+        r'(, upstream: (?P<upstream>[^,]+))?'
+        r'(, host: (?P<host>[^,]+))?'
+        r'(, referrer: (?P<referrer>[^,]+))?$',
+        re.IGNORECASE)
+    top_dir = 'var/log/nginx'
 
 
 class ApacheAccessLogParser(GenericParser):

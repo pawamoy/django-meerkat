@@ -2,14 +2,12 @@
 
 """Views for logs submodule."""
 
-from __future__ import unicode_literals
-
 from django.utils.translation import ugettext_lazy as _
 
 from suit_dashboard.layout import Column, Grid, Row
 from suit_dashboard.views import DashboardView
 
-from meerkat.logs.boxes import (
+from .boxes import (
     BoxLogs, BoxLogsLinks, BoxLogsMostVisitedPages,
     BoxLogsMostVisitedPagesLegend, BoxLogsStatusCodes,
     BoxLogsStatusCodesByDate)
@@ -19,18 +17,14 @@ class HomeView(DashboardView):
     """Main view. Parent class and entry point for other views."""
 
     template_name = 'meerkat/main.html'
-    crumbs = (
-        {'url': 'admin:index', 'name': _('Home')},
-    )
+    crumbs = ({'name': _('Home'), 'url': 'admin:index'}, )
     grid = Grid(Row(Column(BoxLogsLinks())))
 
 
 class LogsMenu(HomeView):
     """View for logs menu."""
 
-    crumbs = (
-        {'url': 'admin:logs', 'name': 'Logs analysis'},
-    )
+    crumbs = ({'name': 'Logs analysis', 'url': 'admin:logs'}, )
     grid = Grid(Row(Column(BoxLogsLinks())))
 
 
@@ -38,7 +32,7 @@ class LogsStatusCodes(LogsMenu):
     """View for status codes."""
 
     crumbs = (
-        {'url': 'admin:logs_status_codes', 'name': _('Status codes')},
+        {'name': _('Status codes'), 'url': 'admin:logs_status_codes'},
     )
     grid = Grid(Row(Column(BoxLogsLinks(), BoxLogsStatusCodes())))
 
@@ -46,10 +40,8 @@ class LogsStatusCodes(LogsMenu):
 class LogsStatusCodesByDate(LogsMenu):
     """View for status codes by date."""
 
-    crumbs = (
-        {'url': 'admin:logs_status_code_by_date',
-         'name': _('Status codes by date')},
-    )
+    crumbs = ({'name': _('Status codes by date'),
+               'url': 'admin:logs_status_code_by_date'},)
     grid = Grid(Row(Column(BoxLogsLinks())),
                 Row(Column(BoxLogsStatusCodesByDate())))
 
@@ -57,10 +49,8 @@ class LogsStatusCodesByDate(LogsMenu):
 class LogsMostVisitedPages(LogsMenu):
     """View for most visited pages."""
 
-    crumbs = (
-        {'url': 'admin:logs_most_visited_pages',
-         'name': _('Most visited pages')},
-    )
+    crumbs = ({'name': _('Most visited pages'),
+               'url': 'admin:logs_most_visited_pages'}, )
     grid = Grid(Row(Column(BoxLogsLinks(), width=5),
                     Column(BoxLogsMostVisitedPagesLegend(), width=7)),
                 Row(Column(BoxLogsMostVisitedPages())))
@@ -69,9 +59,7 @@ class LogsMostVisitedPages(LogsMenu):
 class LogsView(LogsMenu):
     """View for logs pages."""
 
-    crumbs = (
-        {'url': 'admin:logs', 'name': 'Logs'},
-    )
+    crumbs = ({'name': _('Logs'), 'url': 'admin:logs'}, )
 
     def get(self, request, *args, **kwargs):
         """

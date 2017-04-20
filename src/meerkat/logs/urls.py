@@ -2,8 +2,6 @@
 
 """URLs for log submodule."""
 
-from __future__ import absolute_import, unicode_literals
-
 from django.conf.urls import include, url
 
 from .views import (
@@ -55,3 +53,6 @@ def logs_urlpatterns(admin_view):
                 name='logs_list_hour'),
         ]))
     ]
+
+
+# TODO: add app_name and urlpatterns variable
