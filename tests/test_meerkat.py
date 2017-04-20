@@ -3,7 +3,6 @@
 """Main test script."""
 
 
-
 from django.test import TestCase
 
 import meerkat
@@ -14,12 +13,12 @@ class MainTestCase(TestCase):
 
     def setUp(self):
         """Setup method."""
-        pass
+        self.package = meerkat
 
     def test_main(self):
         """Main test method."""
-        assert meerkat
+        assert self.package
 
     def tearDown(self):
         """Tear down method."""
-        pass
+        del self.package
