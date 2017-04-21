@@ -13,7 +13,7 @@ Django Meerkat
 |gitter|
 
 
-.. |travis| image:: https://travis-ci.org/pawamoy/django-meerkat.svg?branch=master
+.. |travis| image:: https://travis-ci.org/Pawamoy/django-meerkat.svg?branch=master
     :target: https://travis-ci.org/Pawamoy/django-meerkat/
     :alt: Travis-CI Build Status
 

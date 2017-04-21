@@ -22,6 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 from dateutil import parser as dateutil_parser
 
 from ..utils.geolocation import ip_info
+from ..utils.time import month_name_to_number
 from .parsers import NginXAccessLogParser
 
 
@@ -256,6 +257,7 @@ class RequestLog(models.Model):
         Args:
             since_days (int): if checked less than this number of days ago,
                 don't check again (default to 10 days).
+            save (bool): whether to save anyway or not.
 
         Returns:
             bool: check was run. Geolocation might not have been updated.
@@ -323,35 +325,39 @@ class RequestLog(models.Model):
         top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
         parser = NginXAccessLogParser(filename_re, format_re, top_dir)
 
-        months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
-                  'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
-                  'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
-
-        def follow(f):
-            f.seek(0, 2)
-            while True:
-                line = f.readline()
-                if not line:
-                    time.sleep(1)
-                    continue
-                yield line
-
         def read_continuously():
-            with open(parser.matching_files()[0]) as f:
-                for line in follow(f):
-                    data = parser.parse_string(line)
-                    log_datetime = '%s%s%sT%s%s%s%s' % (
-                        data.pop('year'),
-                        months.get(data.pop('month')),
-                        data.pop('day'),
-                        data.pop('hour'),
-                        data.pop('minute'),
-                        data.pop('second'),
-                        data.get('timezone'))
-                    data['datetime'] = dateutil_parser.parse(log_datetime)
-                    data['client_ip_address'] = data.pop('ip_address')
-                    log_object = RequestLog(**data)
-                    log_object.update_geolocation(save=True)
+            file_name = parser.matching_files()[0]
+            seek_end = True
+            while True:  # handle moved/truncated files by allowing to reopen
+                with open(file_name) as f:
+                    if seek_end:  # reopened files must not seek end
+                        f.seek(0, 2)
+                    while True:  # line reading loop
+                        line = f.readline()
+                        if not line:
+                            try:
+                                if f.tell() > os.path.getsize(file_name):
+                                    # rotation occurred (copytruncate/create)
+                                    f.close()
+                                    seek_end = False
+                                    break
+                            except FileNotFoundError:
+                                # but new file still not created
+                                pass  # wait 1 second and retry
+                            time.sleep(1)
+                        data = parser.parse_string(line)
+                        log_datetime = '%s%s%sT%s%s%s%s' % (
+                            data.pop('year'),
+                            month_name_to_number(get(data.pop('month'))),
+                            data.pop('day'),
+                            data.pop('hour'),
+                            data.pop('minute'),
+                            data.pop('second'),
+                            data.get('timezone'))
+                        data['datetime'] = dateutil_parser.parse(log_datetime)
+                        data['client_ip_address'] = data.pop('ip_address')
+                        log_object = RequestLog(**data)
+                        log_object.update_geolocation(save=True)
 
         RequestLog.daemon = threading.Thread(target=read_continuously)
         RequestLog.daemon.daemon = True
