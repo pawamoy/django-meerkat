@@ -11,9 +11,9 @@ from __future__ import unicode_literals
 from django.conf.urls import include, url
 from django.contrib.admin.sites import AdminSite
 
-from suit_dashboard.urls import get_refreshable_urls
+from suit_dashboard import get_realtime_urls
 
-from meerkat.logs.views import (
+from .logs.views import (
     HomeView, LogsMenu, LogsMostVisitedPages, LogsStatusCodes,
     LogsStatusCodesByDate, LogsView)
 
@@ -68,7 +68,7 @@ class DashboardSite(AdminSite):
             ])),
         ]
 
-        custom_urls += get_refreshable_urls(self.admin_view)
+        custom_urls += get_realtime_urls(self.admin_view)
 
         del urls[0]
         return custom_urls + urls

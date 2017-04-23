@@ -19,7 +19,7 @@ class GenericParser(object):
     log_format_regex = re.compile(r'^$')
     top_dir = ''
 
-    def __init__(self, file_path_regex, log_format_regex, top_dir):
+    def __init__(self, file_path_regex=None, log_format_regex=None, top_dir=None):
         """
         Init method.
 
@@ -113,10 +113,10 @@ class NginXAccessLogParser(GenericParser):
         r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - '
         r'\[(?P<day>\d{2})/(?P<month>[a-z]{3})/(?P<year>\d{4})'
         r':(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
-        r'(?P<timezone>(\+|\-)\d{4})\] \"(?P<verb>(GET|POST)) '
-        r'(?P<url>.+)(?P<protocol>HTTP/(1\.0|1\.1|2\.0)") '
+        r'(?P<timezone>([+-])\d{4})\] "((?P<verb>[A-Z_]+)?'
+        r' ?(?P<url>.+)(?P<protocol>HTTP/(1\.0|1\.1|2\.0))?)?" '
         r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
-        r'(["](?P<referrer>(\-)|(.+))["]) (["](?P<user_agent>.+)["])',
+        r'"(?P<referrer>(-)|(.+))?" "(?P<user_agent>.+)"',
         re.IGNORECASE)
     top_dir = '/var/log/nginx'
 

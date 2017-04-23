@@ -12,6 +12,7 @@ which is the difficulty here. Work is in progress.
 """
 
 import datetime
+import os
 import threading
 import time
 
@@ -93,11 +94,11 @@ class Geolocation(models.Model):
         return Geolocation.objects.get_or_create(
             latitude=lat,
             longitude=lon,
-            hostname=data['hostname'],
-            city=data['city'],
-            region=data['region'],
-            country=data['country'],
-            org=data['org'])
+            hostname=data.get('hostname', ''),
+            city=data.get('city', ''),
+            region=data.get('region', ''),
+            country=data.get('country', ''),
+            org=data.get('org', ''))
 
 
 class GeolocationCheck(models.Model):
@@ -163,7 +164,7 @@ class RequestLog(models.Model):
     timezone = models.CharField(
         verbose_name=_(''), max_length=10, blank=True)
     url = models.URLField(
-        verbose_name=_(''), blank=True)
+        max_length=2047, verbose_name=_(''), blank=True, null=True)
     status_code = models.SmallIntegerField(
         verbose_name=_(''), blank=True)
     user_agent = models.TextField(
@@ -177,9 +178,9 @@ class RequestLog(models.Model):
     server = models.TextField(
         verbose_name=_(''), blank=True)
     verb = models.CharField(
-        verbose_name=_(''), max_length=10, blank=True)
+        verbose_name=_(''), max_length=30, blank=True, null=True)
     protocol = models.CharField(
-        verbose_name=_(''), max_length=10, blank=True)
+        verbose_name=_(''), max_length=10, blank=True, null=True)
     port = models.PositiveIntegerField(
         verbose_name=_(''), blank=True, null=True)
     file_type = models.CharField(
@@ -309,8 +310,10 @@ class RequestLog(models.Model):
 
             return True
 
+    # TODO: write an init function (read past logs and insert all in db)
+
     @staticmethod
-    def real_time_save_log_in_db():
+    def start_daemon():
         """
         Start a thread to continuously read log files and append lines in DB.
 
@@ -325,41 +328,64 @@ class RequestLog(models.Model):
         top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
         parser = NginXAccessLogParser(filename_re, format_re, top_dir)
 
+        # TODO: use a buffer to reduce number of commits in db (do bulk):
+        # while read line
+        #   append line to list
+        #   if list's length > buffer
+        #       create objects and insert in db
+        #       empty list
+        # if list's length > 0:
+        #   create objects and insert in db
+
+        def follow(file_name, seek_end):
+            with open(file_name) as f:
+                if seek_end:
+                    f.seek(0, 2)
+                while True:
+                    line = f.readline()
+                    if not line:
+                        try:
+                            if f.tell() > os.path.getsize(file_name):
+                                f.close()
+                                break
+                        except FileNotFoundError:
+                            pass
+                        time.sleep(1)
+                        continue
+                    yield line
+
         def read_continuously():
             file_name = parser.matching_files()[0]
             seek_end = True
-            while True:  # handle moved/truncated files by allowing to reopen
-                with open(file_name) as f:
-                    if seek_end:  # reopened files must not seek end
-                        f.seek(0, 2)
-                    while True:  # line reading loop
-                        line = f.readline()
-                        if not line:
-                            try:
-                                if f.tell() > os.path.getsize(file_name):
-                                    # rotation occurred (copytruncate/create)
-                                    f.close()
-                                    seek_end = False
-                                    break
-                            except FileNotFoundError:
-                                # but new file still not created
-                                pass  # wait 1 second and retry
-                            time.sleep(1)
+            while True:
+                for line in follow(file_name, seek_end):
+                    try:
                         data = parser.parse_string(line)
-                        log_datetime = '%s%s%sT%s%s%s%s' % (
-                            data.pop('year'),
-                            month_name_to_number(get(data.pop('month'))),
-                            data.pop('day'),
-                            data.pop('hour'),
-                            data.pop('minute'),
-                            data.pop('second'),
-                            data.get('timezone'))
-                        data['datetime'] = dateutil_parser.parse(log_datetime)
-                        data['client_ip_address'] = data.pop('ip_address')
-                        log_object = RequestLog(**data)
-                        log_object.update_geolocation(save=True)
+                    except AttributeError:
+                        # TODO: log the line
+                        print('Error while parsing log line: %s' % line)
+                        continue
+                    log_datetime = '%s%s%sT%s%s%s%s' % (
+                        data.pop('year'),
+                        month_name_to_number(data.pop('month')),
+                        data.pop('day'),
+                        data.pop('hour'),
+                        data.pop('minute'),
+                        data.pop('second'),
+                        data.get('timezone'))
+                    data['datetime'] = dateutil_parser.parse(log_datetime)
+                    data['client_ip_address'] = data.pop('ip_address')
+                    log_object = RequestLog(**data)
+                    log_object.update_geolocation(save=True)
+                seek_end = False  # rotation occurred, do not seek end anymore
 
         RequestLog.daemon = threading.Thread(target=read_continuously)
         RequestLog.daemon.daemon = True
         RequestLog.daemon.start()
         return RequestLog.daemon
+
+    # FIXME: see https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python#325528
+    @staticmethod
+    def stop_daemon():
+        if hasattr(RequestLog, 'daemon'):
+            RequestLog.daemon.join(timeout=1)
