@@ -311,6 +311,10 @@ class RequestLog(models.Model):
             return True
 
     # TODO: write an init function (read past logs and insert all in db)
+    @staticmethod
+    def parse_all():
+        pass
+
 
     @staticmethod
     def start_daemon():
@@ -323,9 +327,6 @@ class RequestLog(models.Model):
         Returns:
             thread: the started thread.
         """
-        filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
-        format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
-        top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
         parser = NginXAccessLogParser(filename_re, format_re, top_dir)
 
         # TODO: use a buffer to reduce number of commits in db (do bulk):
