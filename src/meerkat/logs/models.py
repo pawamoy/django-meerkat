@@ -14,17 +14,22 @@ which is the difficulty here. Work is in progress.
 import datetime
 import os
 import threading
+import sys
 import time
 
-from django.conf import settings
+from django.core.serializers.base import ProgressBar
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from dateutil import parser as dateutil_parser
 
+from ..apps import AppSettings
 from ..utils.geolocation import ip_info
 from ..utils.time import month_name_to_number
 from .parsers import NginXAccessLogParser
+
+
+# TODO: add verbose options!
 
 
 # Define what information retrievable from the logs are pertinent
@@ -164,7 +169,7 @@ class RequestLog(models.Model):
     timezone = models.CharField(
         verbose_name=_(''), max_length=10, blank=True)
     url = models.URLField(
-        max_length=2047, verbose_name=_(''), blank=True, null=True)
+        max_length=2047, verbose_name=_(''), blank=True)
     status_code = models.SmallIntegerField(
         verbose_name=_(''), blank=True)
     user_agent = models.TextField(
@@ -178,9 +183,9 @@ class RequestLog(models.Model):
     server = models.TextField(
         verbose_name=_(''), blank=True)
     verb = models.CharField(
-        verbose_name=_(''), max_length=30, blank=True, null=True)
+        verbose_name=_(''), max_length=30, blank=True)
     protocol = models.CharField(
-        verbose_name=_(''), max_length=10, blank=True, null=True)
+        verbose_name=_(''), max_length=10, blank=True)
     port = models.PositiveIntegerField(
         verbose_name=_(''), blank=True, null=True)
     file_type = models.CharField(
@@ -251,7 +256,7 @@ class RequestLog(models.Model):
     def __str__(self):
         return str(self.datetime)
 
-    def update_geolocation(self, since_days=10, save=False):
+    def update_geolocation(self, since_days=10, save=False, force=False):
         """
         Update the geolocation.
 
@@ -259,6 +264,7 @@ class RequestLog(models.Model):
             since_days (int): if checked less than this number of days ago,
                 don't check again (default to 10 days).
             save (bool): whether to save anyway or not.
+            force (bool): whether to update geolocation to last checked one.
 
         Returns:
             bool: check was run. Geolocation might not have been updated.
@@ -271,7 +277,12 @@ class RequestLog(models.Model):
             # If checked less than since_days ago, don't check again
             since_last = datetime.date.today() - last_check.date
             if since_last <= datetime.timedelta(days=since_days):
-                if save:
+                if not self.geolocation or (
+                        self.geolocation != last_check.geolocation and force):
+                    self.geolocation = last_check.geolocation
+                    self.save()
+                    return True
+                elif save:
                     self.save()
                 return False
 
@@ -279,19 +290,20 @@ class RequestLog(models.Model):
             geolocation, created = Geolocation.get_or_create_from_ip(
                 self.client_ip_address)
 
+            # Update check time
+            last_check.date = datetime.date.today()
+            last_check.save()
+
             # Maybe data changed
             if created:
                 last_check.geolocation = geolocation
                 self.geolocation = geolocation
                 self.save()
+                return True
             elif save:
                 self.save()
 
-            # Update check time
-            last_check.date = datetime.date.today()
-            last_check.save()
-
-            return True
+            return False
 
         except GeolocationCheck.DoesNotExist:
             # Else if ip never checked, check it
@@ -310,11 +322,63 @@ class RequestLog(models.Model):
 
             return True
 
-    # TODO: write an init function (read past logs and insert all in db)
     @staticmethod
-    def parse_all():
-        pass
+    def data_to_log(data):
+        log_datetime = '%s%s%sT%s%s%s%s' % (
+            data.pop('year'),
+            month_name_to_number(data.pop('month')),
+            data.pop('day'),
+            data.pop('hour'),
+            data.pop('minute'),
+            data.pop('second'),
+            data.get('timezone'))
+        data['datetime'] = dateutil_parser.parse(log_datetime)
+        data['client_ip_address'] = data.pop('ip_address')
+        data = {k: v for k, v in data.items() if v is not None}
+        return RequestLog(**data)
 
+    @staticmethod
+    def parse_all(buffer_size=512):
+        parser = NginXAccessLogParser(
+            file_path_regex=AppSettings.get_logs_file_path_regex(),
+            log_format_regex=AppSettings.get_logs_format_regex(),
+            top_dir=AppSettings.get_logs_top_dir())
+
+        buffer = []
+        start = datetime.datetime.now()
+        for log_file in parser.matching_files():
+            n_lines = count_lines(log_file)
+            progress_bar = ProgressBar(sys.stdout, n_lines)
+            print('Reading log file %s: %s lines' % (log_file, n_lines))
+            with open(log_file) as f:
+                for count, line in enumerate(f, 1):
+                    try:
+                        data = parser.parse_string(line)
+                    except AttributeError:
+                        # TODO: log the line
+                        print('Error while parsing log line: %s' % line)
+                        continue
+                    buffer.append(RequestLog.data_to_log(data))
+                    if len(buffer) >= buffer_size:
+                        RequestLog.objects.bulk_create(buffer)
+                        buffer.clear()
+                    progress_bar.update(count)
+                if len(buffer) > 0:
+                    RequestLog.objects.bulk_create(buffer)
+                    buffer.clear()
+        end = datetime.datetime.now()
+        print('Elapsed time: %s' % (end - start))
+
+    @staticmethod
+    def geolocalize():
+        updated = 0
+        request_logs = RequestLog.objects.filter(geolocation=None)
+        progress_bar = ProgressBar(sys.stdout, request_logs.count())
+        for count, rl in enumerate(request_logs, 1):
+            if rl.update_geolocation():
+                updated += 1
+            progress_bar.update(count)
+        return updated
 
     @staticmethod
     def start_daemon():
@@ -327,16 +391,10 @@ class RequestLog(models.Model):
         Returns:
             thread: the started thread.
         """
-        parser = NginXAccessLogParser(filename_re, format_re, top_dir)
-
-        # TODO: use a buffer to reduce number of commits in db (do bulk):
-        # while read line
-        #   append line to list
-        #   if list's length > buffer
-        #       create objects and insert in db
-        #       empty list
-        # if list's length > 0:
-        #   create objects and insert in db
+        parser = NginXAccessLogParser(
+            file_path_regex=AppSettings.get_logs_file_path_regex(),
+            log_format_regex=AppSettings.get_logs_format_regex(),
+            top_dir=AppSettings.get_logs_top_dir())
 
         def follow(file_name, seek_end):
             with open(file_name) as f:
@@ -366,17 +424,7 @@ class RequestLog(models.Model):
                         # TODO: log the line
                         print('Error while parsing log line: %s' % line)
                         continue
-                    log_datetime = '%s%s%sT%s%s%s%s' % (
-                        data.pop('year'),
-                        month_name_to_number(data.pop('month')),
-                        data.pop('day'),
-                        data.pop('hour'),
-                        data.pop('minute'),
-                        data.pop('second'),
-                        data.get('timezone'))
-                    data['datetime'] = dateutil_parser.parse(log_datetime)
-                    data['client_ip_address'] = data.pop('ip_address')
-                    log_object = RequestLog(**data)
+                    log_object = RequestLog.data_to_log(data)
                     log_object.update_geolocation(save=True)
                 seek_end = False  # rotation occurred, do not seek end anymore
 
@@ -390,3 +438,11 @@ class RequestLog(models.Model):
     def stop_daemon():
         if hasattr(RequestLog, 'daemon'):
             RequestLog.daemon.join(timeout=1)
+
+
+def count_lines(file_name):
+    i = -1
+    with open(file_name) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1

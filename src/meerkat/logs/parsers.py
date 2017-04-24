@@ -110,13 +110,13 @@ class NginXAccessLogParser(GenericParser):
     file_path_regex = re.compile(r'access.log')
     # coderwall.com/p/snn1ag/regex-to-parse-your-default-nginx-access-logs
     log_format_regex = re.compile(
-        r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - '
+        r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - (-|(\w+)) '
         r'\[(?P<day>\d{2})/(?P<month>[a-z]{3})/(?P<year>\d{4})'
         r':(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
         r'(?P<timezone>([+-])\d{4})\] "((?P<verb>[A-Z_]+)?'
         r' ?(?P<url>.+)(?P<protocol>HTTP/(1\.0|1\.1|2\.0))?)?" '
         r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
-        r'"(?P<referrer>(-)|(.+))?" "(?P<user_agent>.+)"',
+        r'"(?P<referrer>(-)|(.+))?" "(?P<user_agent>.+)?"',
         re.IGNORECASE)
     top_dir = '/var/log/nginx'
 

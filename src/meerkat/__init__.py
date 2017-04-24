@@ -9,4 +9,4 @@ but also to run security and architecture analysis checks.
 
 __version__ = '0.1.1'
 
-# TODO: use django-app-settings
+default_app_config = 'meerkat.apps.MeerkatConfig'

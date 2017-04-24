@@ -16,7 +16,7 @@ def ip_info(ip):
         dict: see http://ipinfo.io/developers/getting-started
     """
     # Geoloc updated up to once a week:
-    # http://ipinfo.io/data#geolocation-data
+    # http://ipinfo.io/developers/data#geolocation-data
     response = requests.get('http://ipinfo.io/%s' % ip).json()
     return response
 
