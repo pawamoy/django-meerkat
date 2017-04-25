@@ -38,7 +38,7 @@ class AppSettings(aps.AppSettings):
     logs_file_path_regex = RegexSetting()
     logs_format_regex = RegexSetting()
     logs_top_dir = aps.StringSetting()
-    logs_start_daemon = aps.BoolSetting()
+    logs_start_daemon = aps.BoolSetting(default=False)
 
     class Meta:
         setting_prefix = 'MEERKAT_'

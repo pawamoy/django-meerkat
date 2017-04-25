@@ -12,8 +12,6 @@ which is the difficulty here. Work is in progress.
 """
 
 import datetime
-import os
-import threading
 import sys
 import time
 
@@ -24,12 +22,12 @@ from django.utils.translation import ugettext_lazy as _
 from dateutil import parser as dateutil_parser
 
 from ..apps import AppSettings
+from ..exceptions import RateExceededError
+from ..utils.file import follow
 from ..utils.geolocation import ip_info
+from ..utils.threading import StoppableThread
 from ..utils.time import month_name_to_number
 from .parsers import NginXAccessLogParser
-
-
-# TODO: add verbose options!
 
 
 # Define what information retrievable from the logs are pertinent
@@ -46,29 +44,29 @@ class Geolocation(models.Model):
     # if we want to compute statistical data about it. We cannot query
     # web-services each time we want to do this (data changed over time).
     latitude = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('Latitude'), max_length=255)
     longitude = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('Longitude'), max_length=255)
     hostname = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('Hostname'), max_length=255)
     city = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('City'), max_length=255)
     city_code = models.CharField(
-        verbose_name=_(''), max_length=255, blank=True)
+        verbose_name=_('City code'), max_length=255, blank=True)
     region = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('Region'), max_length=255)
     region_code = models.CharField(
-        verbose_name=_(''), max_length=255, blank=True)
+        verbose_name=_('Region code'), max_length=255, blank=True)
     country = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('Country'), max_length=255)
     country_code = models.CharField(
-        verbose_name=_(''), max_length=255, blank=True)
+        verbose_name=_('Country code'), max_length=255, blank=True)
     continent = models.CharField(
-        verbose_name=_(''), max_length=255, blank=True)
+        verbose_name=_('Continent'), max_length=255, blank=True)
     continent_code = models.CharField(
-        verbose_name=_(''), max_length=255, blank=True)
+        verbose_name=_('Continent code'), max_length=255, blank=True)
     org = models.CharField(
-        verbose_name=_(''), max_length=255)
+        verbose_name=_('Organization'), max_length=255)
 
     class Meta:
         """Meta class for Django."""
@@ -93,8 +91,10 @@ class Geolocation(models.Model):
             geolocation: an instance of Geolocation.
         """
         data = ip_info(ip)
-        loc = data['loc']
-        lat, lon = loc.split(',')
+        loc = data.get('loc', None)
+        lat = lon = ''
+        if loc:
+            lat, lon = loc.split(',')
 
         return Geolocation.objects.get_or_create(
             latitude=lat,
@@ -104,6 +104,10 @@ class Geolocation(models.Model):
             region=data.get('region', ''),
             country=data.get('country', ''),
             org=data.get('org', ''))
+
+    def ip_addresses(self):
+        return list(GeolocationCheck.objects.filter(
+            geolocation=self).values_list('ip_address', flat=True))
 
 
 class GeolocationCheck(models.Model):
@@ -117,17 +121,25 @@ class GeolocationCheck(models.Model):
     """
 
     ip_address = models.GenericIPAddressField(
-        verbose_name=_(''), unique=True)
+        verbose_name=_('IP address'), unique=True)
     date = models.DateField(
-        verbose_name=_(''), default=datetime.date.today)
+        verbose_name=_('Date'), default=datetime.date.today)
     geolocation = models.ForeignKey(
-        Geolocation, verbose_name=_(''))
+        Geolocation, verbose_name=_('Geolocation'))
 
     class Meta:
         """Meta class for Django."""
 
         verbose_name = _('Geolocation check')
         verbose_name_plural = _('Geolocation checks')
+
+    @staticmethod
+    def check_ip(ip):
+        geolocation, created = Geolocation.get_or_create_from_ip(ip)
+        GeolocationCheck.objects.create(
+            ip_address=ip,
+            geolocation=geolocation)
+        return geolocation
 
 
 class RequestLog(models.Model):
@@ -163,50 +175,50 @@ class RequestLog(models.Model):
 
     # General info
     client_ip_address = models.GenericIPAddressField(
-        verbose_name=_(''), blank=True, null=True)
+        verbose_name=_('Client IP address'), blank=True, null=True)
     datetime = models.DateTimeField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Datetime'), blank=True)
     timezone = models.CharField(
-        verbose_name=_(''), max_length=10, blank=True)
+        verbose_name=_('Timezone'), max_length=10, blank=True)
     url = models.URLField(
-        max_length=2047, verbose_name=_(''), blank=True)
+        max_length=2047, verbose_name=_('URL'), blank=True)
     status_code = models.SmallIntegerField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Status code'), blank=True)
     user_agent = models.TextField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('User agent'), blank=True)
     referrer = models.TextField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Referrer'), blank=True)
     upstream = models.TextField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Upstream'), blank=True)
     host = models.TextField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Host'), blank=True)
     server = models.TextField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Server'), blank=True)
     verb = models.CharField(
-        verbose_name=_(''), max_length=30, blank=True)
+        verbose_name=_('Verb'), max_length=30, blank=True)
     protocol = models.CharField(
-        verbose_name=_(''), max_length=10, blank=True)
+        verbose_name=_('Protocol'), max_length=10, blank=True)
     port = models.PositiveIntegerField(
-        verbose_name=_(''), blank=True, null=True)
+        verbose_name=_('Port'), blank=True, null=True)
     file_type = models.CharField(
-        verbose_name=_(''), max_length=20, blank=True)
+        verbose_name=_('File type'), max_length=20, blank=True)
     https = models.BooleanField(
-        verbose_name=_(''), default=False)
+        verbose_name=_('HTTPS'), default=False)
     bytes_sent = models.IntegerField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Bytes sent'), blank=True)
 
     # Error logs
     error = models.BooleanField(
-        verbose_name=_(''), default=False)
+        verbose_name=_('Error'), default=False)
     level = models.CharField(
-        verbose_name=_(''), max_length=255, blank=True)
+        verbose_name=_('Level'), max_length=255, blank=True)
     message = models.TextField(
-        verbose_name=_(''), blank=True)
+        verbose_name=_('Message'), blank=True)
 
     # Geolocation
     geolocation = models.ForeignKey(
         Geolocation,
-        verbose_name=_(''), null=True)
+        verbose_name=_('IP geolocation'), null=True)
 
     # Not really useful for now
     # request = models.TextField()
@@ -306,18 +318,8 @@ class RequestLog(models.Model):
             return False
 
         except GeolocationCheck.DoesNotExist:
-            # Else if ip never checked, check it
-            # Get or create geolocation object
-            geolocation, created = Geolocation.get_or_create_from_ip(
-                self.client_ip_address)
-
-            # Create LastChecked object
-            GeolocationCheck.objects.create(
-                ip_address=self.client_ip_address,
-                geolocation=geolocation)
-
-            # Set geolocation
-            self.geolocation = geolocation
+            # Else if ip never checked, check it and set geolocation
+            self.geolocation = GeolocationCheck.check_ip(self.client_ip_address)
             self.save()
 
             return True
@@ -371,14 +373,27 @@ class RequestLog(models.Model):
 
     @staticmethod
     def geolocalize():
-        updated = 0
-        request_logs = RequestLog.objects.filter(geolocation=None)
-        progress_bar = ProgressBar(sys.stdout, request_logs.count())
-        for count, rl in enumerate(request_logs, 1):
-            if rl.update_geolocation():
-                updated += 1
-            progress_bar.update(count)
-        return updated
+        param = 'client_ip_address'
+        unique_ips = set(RequestLog.objects.distinct(param).values_list(param, flat=True))
+        checked_ips = set(GeolocationCheck.objects.values_list('ip_address', flat=True))
+        not_checked_ips = unique_ips - checked_ips
+        print('Checking IPs geolocations (%s)' % len(not_checked_ips))
+        # check_progress_bar = ProgressBar(sys.stdout, len(not_checked_ips))
+        for count, ip in enumerate(not_checked_ips, 1):
+            print('Checking IP %s' % ip)
+            try:
+                GeolocationCheck.check_ip(ip)
+            except RateExceededError:
+                break
+            # check_progress_bar.update(count)
+        checks = GeolocationCheck.objects.all()
+        print('Updating request logs geolocations (%s)' % checks.count())
+        logs_progress_bar = ProgressBar(sys.stdout, checks.count())
+        for count, check in enumerate(checks, 1):
+            RequestLog.objects.filter(
+                geolocation=None, client_ip_address=check.ip_address
+            ).update(geolocation=check.geolocation)
+            logs_progress_bar.update(count)
 
     @staticmethod
     def start_daemon():
@@ -396,48 +411,34 @@ class RequestLog(models.Model):
             log_format_regex=AppSettings.get_logs_format_regex(),
             top_dir=AppSettings.get_logs_top_dir())
 
-        def follow(file_name, seek_end):
-            with open(file_name) as f:
-                if seek_end:
-                    f.seek(0, 2)
+        class ParseLogToDBThread(StoppableThread):
+            def run(self):
+                file_name = parser.matching_files()[0]
+                seek_end = True
                 while True:
-                    line = f.readline()
-                    if not line:
+                    for line in follow(file_name, seek_end):
                         try:
-                            if f.tell() > os.path.getsize(file_name):
-                                f.close()
-                                break
-                        except FileNotFoundError:
-                            pass
-                        time.sleep(1)
-                        continue
-                    yield line
+                            data = parser.parse_string(line)
+                        except AttributeError:
+                            # TODO: log the line
+                            print('Error while parsing log line: %s' % line)
+                            continue
+                        log_object = RequestLog.data_to_log(data)
+                        log_object.update_geolocation(save=True)
+                        if self.stopped():
+                            break
+                    if self.stopped():
+                        break
+                    seek_end = False
 
-        def read_continuously():
-            file_name = parser.matching_files()[0]
-            seek_end = True
-            while True:
-                for line in follow(file_name, seek_end):
-                    try:
-                        data = parser.parse_string(line)
-                    except AttributeError:
-                        # TODO: log the line
-                        print('Error while parsing log line: %s' % line)
-                        continue
-                    log_object = RequestLog.data_to_log(data)
-                    log_object.update_geolocation(save=True)
-                seek_end = False  # rotation occurred, do not seek end anymore
-
-        RequestLog.daemon = threading.Thread(target=read_continuously)
-        RequestLog.daemon.daemon = True
+        RequestLog.daemon = ParseLogToDBThread(daemon=True)
         RequestLog.daemon.start()
         return RequestLog.daemon
 
-    # FIXME: see https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread-in-python#325528
     @staticmethod
     def stop_daemon():
         if hasattr(RequestLog, 'daemon'):
-            RequestLog.daemon.join(timeout=1)
+            RequestLog.daemon.stop()
 
 
 def count_lines(file_name):

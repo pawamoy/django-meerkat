@@ -4,6 +4,8 @@
 
 import requests
 
+from ..exceptions import RateExceededError
+
 
 def ip_info(ip):
     """
@@ -17,10 +19,19 @@ def ip_info(ip):
     """
     # Geoloc updated up to once a week:
     # http://ipinfo.io/developers/data#geolocation-data
-    response = requests.get('http://ipinfo.io/%s' % ip).json()
-    return response
+    retries = 10
+    for retry in range(retries):
+        try:
+            response = requests.get('http://ipinfo.io/%s/json' % ip,
+                                    verify=False, timeout=1)
+            if response.status_code == 429:
+                raise RateExceededError
+            return response.json()
+        except (requests.ReadTimeout, requests.ConnectTimeout):
+            pass
 
 
+# FIXME: maybe not hit ipinfo but db instead
 def ip_geoloc(ip, data=None):
     """
     Get IP geolocation.
