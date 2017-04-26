@@ -13,20 +13,17 @@ which is the difficulty here. Work is in progress.
 
 import datetime
 import sys
-import time
 
 from django.core.serializers.base import ProgressBar
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from dateutil import parser as dateutil_parser
 
 from ..apps import AppSettings
 from ..exceptions import RateExceededError
-from ..utils.file import follow
-from ..utils.geolocation import ip_info
+from ..utils.file import follow, count_lines
+from ..utils.geolocation import ip_api_handler, ip_info_handler
 from ..utils.threading import StoppableThread
-from ..utils.time import month_name_to_number
 from .parsers import NginXAccessLogParser
 
 
@@ -44,21 +41,21 @@ class Geolocation(models.Model):
     # if we want to compute statistical data about it. We cannot query
     # web-services each time we want to do this (data changed over time).
     latitude = models.CharField(
-        verbose_name=_('Latitude'), max_length=255)
+        verbose_name=_('Latitude'), max_length=255, blank=True)
     longitude = models.CharField(
-        verbose_name=_('Longitude'), max_length=255)
+        verbose_name=_('Longitude'), max_length=255, blank=True)
     hostname = models.CharField(
-        verbose_name=_('Hostname'), max_length=255)
+        verbose_name=_('Hostname'), max_length=255, blank=True)
     city = models.CharField(
-        verbose_name=_('City'), max_length=255)
+        verbose_name=_('City'), max_length=255, blank=True)
     city_code = models.CharField(
         verbose_name=_('City code'), max_length=255, blank=True)
     region = models.CharField(
-        verbose_name=_('Region'), max_length=255)
+        verbose_name=_('Region'), max_length=255, blank=True)
     region_code = models.CharField(
         verbose_name=_('Region code'), max_length=255, blank=True)
     country = models.CharField(
-        verbose_name=_('Country'), max_length=255)
+        verbose_name=_('Country'), max_length=255, blank=True)
     country_code = models.CharField(
         verbose_name=_('Country code'), max_length=255, blank=True)
     continent = models.CharField(
@@ -66,7 +63,7 @@ class Geolocation(models.Model):
     continent_code = models.CharField(
         verbose_name=_('Continent code'), max_length=255, blank=True)
     org = models.CharField(
-        verbose_name=_('Organization'), max_length=255)
+        verbose_name=_('Organization'), max_length=255, blank=True)
 
     class Meta:
         """Meta class for Django."""
@@ -90,20 +87,10 @@ class Geolocation(models.Model):
         Returns:
             geolocation: an instance of Geolocation.
         """
-        data = ip_info(ip)
-        loc = data.get('loc', None)
-        lat = lon = ''
-        if loc:
-            lat, lon = loc.split(',')
-
-        return Geolocation.objects.get_or_create(
-            latitude=lat,
-            longitude=lon,
-            hostname=data.get('hostname', ''),
-            city=data.get('city', ''),
-            region=data.get('region', ''),
-            country=data.get('country', ''),
-            org=data.get('org', ''))
+        data = ip_api_handler.get(ip)
+        if data and any(v for v in data.values()):
+            return Geolocation.objects.get_or_create(**data)
+        return None, False
 
     def ip_addresses(self):
         return list(GeolocationCheck.objects.filter(
@@ -133,13 +120,18 @@ class GeolocationCheck(models.Model):
         verbose_name = _('Geolocation check')
         verbose_name_plural = _('Geolocation checks')
 
+    def __str__(self):
+        return '%s %s %s' % (self.ip_address, self.date, self.geolocation)
+
     @staticmethod
     def check_ip(ip):
         geolocation, created = Geolocation.get_or_create_from_ip(ip)
-        GeolocationCheck.objects.create(
-            ip_address=ip,
-            geolocation=geolocation)
-        return geolocation
+        if geolocation:
+            GeolocationCheck.objects.create(
+                ip_address=ip,
+                geolocation=geolocation)
+            return geolocation
+        return None
 
 
 class RequestLog(models.Model):
@@ -265,6 +257,30 @@ class RequestLog(models.Model):
         verbose_name = _('Request log')
         verbose_name_plural = _('Request logs')
 
+    class ParseToDBThread(StoppableThread):
+        def __init__(self, parser, *args, **kwargs):
+            super(RequestLog.ParseToDBThread, self).__init__(*args, **kwargs)
+            self.parser = parser
+
+        def run(self):
+            file_name = self.parser.matching_files()[0]
+            seek_end = True
+            while True:
+                for line in follow(file_name, seek_end, 1, self.stopped):
+                    try:
+                        data = self.parser.parse_string(line)
+                    except AttributeError:
+                        # TODO: log the line
+                        print('Error while parsing log line: %s' % line)
+                        continue
+                    log_object = self.parser.data_to_log(data)
+                    log_object.update_geolocation(save=True)
+                    if self.stopped():
+                        break
+                if self.stopped():
+                    break
+                seek_end = False
+
     def __str__(self):
         return str(self.datetime)
 
@@ -325,21 +341,6 @@ class RequestLog(models.Model):
             return True
 
     @staticmethod
-    def data_to_log(data):
-        log_datetime = '%s%s%sT%s%s%s%s' % (
-            data.pop('year'),
-            month_name_to_number(data.pop('month')),
-            data.pop('day'),
-            data.pop('hour'),
-            data.pop('minute'),
-            data.pop('second'),
-            data.get('timezone'))
-        data['datetime'] = dateutil_parser.parse(log_datetime)
-        data['client_ip_address'] = data.pop('ip_address')
-        data = {k: v for k, v in data.items() if v is not None}
-        return RequestLog(**data)
-
-    @staticmethod
     def parse_all(buffer_size=512):
         parser = NginXAccessLogParser(
             file_path_regex=AppSettings.get_logs_file_path_regex(),
@@ -360,7 +361,7 @@ class RequestLog(models.Model):
                         # TODO: log the line
                         print('Error while parsing log line: %s' % line)
                         continue
-                    buffer.append(RequestLog.data_to_log(data))
+                    buffer.append(RequestLog(**parser.format_data(data)))
                     if len(buffer) >= buffer_size:
                         RequestLog.objects.bulk_create(buffer)
                         buffer.clear()
@@ -374,24 +375,27 @@ class RequestLog(models.Model):
     @staticmethod
     def geolocalize():
         param = 'client_ip_address'
-        unique_ips = set(RequestLog.objects.distinct(param).values_list(param, flat=True))
-        checked_ips = set(GeolocationCheck.objects.values_list('ip_address', flat=True))
+        unique_ips = set(RequestLog.objects.distinct(param).values_list(param, flat=True))  # noqa
+        checked_ips = set(GeolocationCheck.objects.values_list('ip_address', flat=True))  # noqa
         not_checked_ips = unique_ips - checked_ips
         print('Checking IPs geolocations (%s)' % len(not_checked_ips))
-        # check_progress_bar = ProgressBar(sys.stdout, len(not_checked_ips))
+        check_progress_bar = ProgressBar(sys.stdout, len(not_checked_ips))
         for count, ip in enumerate(not_checked_ips, 1):
-            print('Checking IP %s' % ip)
             try:
                 GeolocationCheck.check_ip(ip)
             except RateExceededError:
+                print(' Rate exceeded')
                 break
-            # check_progress_bar.update(count)
-        checks = GeolocationCheck.objects.all()
-        print('Updating request logs geolocations (%s)' % checks.count())
+            check_progress_bar.update(count)
+        no_geoloc = RequestLog.objects.filter(geolocation=None)
+        no_geoloc_ip = set(no_geoloc.distinct(param).values_list(param, flat=True))  # noqa
+        checks = GeolocationCheck.objects.filter(ip_address__in=no_geoloc_ip)
+        print('Updating request logs geolocations (%s)' % no_geoloc.count())
+        print('%s related checks' % checks.count())
         logs_progress_bar = ProgressBar(sys.stdout, checks.count())
         for count, check in enumerate(checks, 1):
-            RequestLog.objects.filter(
-                geolocation=None, client_ip_address=check.ip_address
+            no_geoloc.filter(
+                client_ip_address=check.ip_address
             ).update(geolocation=check.geolocation)
             logs_progress_bar.update(count)
 
@@ -406,32 +410,12 @@ class RequestLog(models.Model):
         Returns:
             thread: the started thread.
         """
-        parser = NginXAccessLogParser(
-            file_path_regex=AppSettings.get_logs_file_path_regex(),
-            log_format_regex=AppSettings.get_logs_format_regex(),
-            top_dir=AppSettings.get_logs_top_dir())
-
-        class ParseLogToDBThread(StoppableThread):
-            def run(self):
-                file_name = parser.matching_files()[0]
-                seek_end = True
-                while True:
-                    for line in follow(file_name, seek_end):
-                        try:
-                            data = parser.parse_string(line)
-                        except AttributeError:
-                            # TODO: log the line
-                            print('Error while parsing log line: %s' % line)
-                            continue
-                        log_object = RequestLog.data_to_log(data)
-                        log_object.update_geolocation(save=True)
-                        if self.stopped():
-                            break
-                    if self.stopped():
-                        break
-                    seek_end = False
-
-        RequestLog.daemon = ParseLogToDBThread(daemon=True)
+        if not hasattr(RequestLog, 'daemon'):
+            parser = NginXAccessLogParser(
+                file_path_regex=AppSettings.get_logs_file_path_regex(),
+                log_format_regex=AppSettings.get_logs_format_regex(),
+                top_dir=AppSettings.get_logs_top_dir())
+            RequestLog.daemon = RequestLog.ParseToDBThread(parser, daemon=True)
         RequestLog.daemon.start()
         return RequestLog.daemon
 
@@ -439,11 +423,4 @@ class RequestLog(models.Model):
     def stop_daemon():
         if hasattr(RequestLog, 'daemon'):
             RequestLog.daemon.stop()
-
-
-def count_lines(file_name):
-    i = -1
-    with open(file_name) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
+            RequestLog.daemon.join()

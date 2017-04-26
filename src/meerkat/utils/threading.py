@@ -9,10 +9,10 @@ class StoppableThread(threading.Thread):
 
     def __init__(self, *args, **kwargs):
         super(StoppableThread, self).__init__(*args, **kwargs)
-        self._stop = threading.Event()
+        self._stopped = threading.Event()
 
     def stop(self):
-        self._stop.set()
+        self._stopped.set()
 
     def stopped(self):
-        return self._stop.isSet()
+        return self._stopped.isSet()

@@ -11,6 +11,10 @@ import re
 from os import walk
 from os.path import abspath, join, relpath, sep
 
+from dateutil import parser as dateutil_parser
+
+from ..utils.time import month_name_to_number
+
 
 class GenericParser(object):
     """Generic parser. Customize it with regular expressions."""
@@ -103,6 +107,9 @@ class GenericParser(object):
         """
         return re.match(self.log_format_regex, string).groupdict()
 
+    def format_data(self, data):
+        raise NotImplementedError
+
 
 class NginXAccessLogParser(GenericParser):
     """Parser for NginX logs."""
@@ -119,6 +126,20 @@ class NginXAccessLogParser(GenericParser):
         r'"(?P<referrer>(-)|(.+))?" "(?P<user_agent>.+)?"',
         re.IGNORECASE)
     top_dir = '/var/log/nginx'
+
+    def format_data(self, data):
+        log_datetime = '%s%s%sT%s%s%s%s' % (
+            data.pop('year'),
+            month_name_to_number(data.pop('month')),
+            data.pop('day'),
+            data.pop('hour'),
+            data.pop('minute'),
+            data.pop('second'),
+            data.get('timezone'))
+        data['datetime'] = dateutil_parser.parse(log_datetime)
+        data['client_ip_address'] = data.pop('ip_address')
+        data = {k: v for k, v in data.items() if v is not None}
+        return data
 
 
 class NginXErrorLogParser(GenericParser):
