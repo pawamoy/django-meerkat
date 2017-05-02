@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.urlresolvers import Resolver404, resolve
 
-
 URL_WHITE_LIST = {
     'ASSETS': {
         'PREFIXES': (

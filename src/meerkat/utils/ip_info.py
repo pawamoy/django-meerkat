@@ -2,8 +2,8 @@
 
 """Geolocation utils."""
 
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 import requests
 
@@ -140,6 +140,9 @@ class IpAPIHandler(BaseRequestRateHandler):
             country_code=data.get('countryCode', ''),
             org=data.get('org', ''))
 
+    def format_batch(self, data):
+        return {d['query']: self.format(d) for d in data}
+
     def _get(self, ip):
         retries = 10
         for retry in range(retries):
@@ -174,12 +177,12 @@ def ip_geoloc(ip, hit_api=True):
     Returns:
         str: latitude and longitude, comma-separated.
     """
-    from ..logs.models import GeolocationCheck
+    from ..logs.models import IPInfoCheck
     try:
-        obj = GeolocationCheck.objects.get(ip_address=ip).geolocation
-    except GeolocationCheck.DoesNotExist:
+        obj = IPInfoCheck.objects.get(ip_address=ip).geolocation
+    except IPInfoCheck.DoesNotExist:
         if hit_api:
-            obj = GeolocationCheck.check_ip(ip)
+            obj = IPInfoCheck.check_ip(ip)
         else:
             return None
     return obj.latitude, obj.longitude

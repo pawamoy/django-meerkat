@@ -68,7 +68,8 @@ setup(
         'security', 'audit', 'admin', 'dashboard', 'logs', 'analysis', 'django'
     ],
     install_requires=[
-        'django-suit-dashboard', 'python-dateutil', 'requests'
+        'django-suit-dashboard', 'python-dateutil', 'requests',
+        'django-app-settings'
     ],
     extras_require={
         # eg:
