@@ -3,6 +3,7 @@
 import re
 
 from django.apps import AppConfig
+
 import appsettings as aps
 
 
@@ -37,7 +38,7 @@ class RegexSetting(aps.Setting):
 class AppSettings(aps.AppSettings):
     logs_file_path_regex = RegexSetting()
     logs_format_regex = RegexSetting()
-    logs_top_dir = aps.StringSetting()
+    logs_top_dir = aps.StringSetting(default=None)
     logs_start_daemon = aps.BoolSetting(default=False)
 
     class Meta:

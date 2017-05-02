@@ -2,7 +2,6 @@
 
 """Models."""
 
-from .logs.models import Geolocation, GeolocationCheck, RequestLog
+from .logs.models import IPInfo, IPInfoCheck, RequestLog
 
-
-__all__ = ['GeolocationCheck', 'Geolocation', 'RequestLog']
+__all__ = ['IPInfoCheck', 'IPInfo', 'RequestLog']

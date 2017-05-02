@@ -18,12 +18,11 @@ from django.core.serializers.base import ProgressBar
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
 from ..apps import AppSettings
 from ..exceptions import RateExceededError
-from ..utils.file import follow, count_lines
-from ..utils.geolocation import ip_api_handler, ip_info_handler
-from ..utils.threading import StoppableThread
+from ..utils.file import count_lines, follow
+from ..utils.ip_info import ip_api_handler, ip_info_handler
+from ..utils.thread import StoppableThread
 from .parsers import NginXAccessLogParser
 
 
@@ -32,12 +31,12 @@ from .parsers import NginXAccessLogParser
 # Remember our goal is security audit, not performance audit.
 
 
-class Geolocation(models.Model):
-    """A model to store a geolocation."""
+class IPInfo(models.Model):
+    """A model to store IP address information."""
 
-    # Even if we have a paid account on some geolocation service,
-    # an IP address had one and only one geolocation at the time of the
-    # request. Therefore, these geolocations must be stored in the DB
+    # Even if we have a paid account on some ip info service,
+    # an IP address had unique information at the time of the
+    # request. Therefore, this information must be stored in the DB
     # if we want to compute statistical data about it. We cannot query
     # web-services each time we want to do this (data changed over time).
     latitude = models.CharField(
@@ -70,8 +69,8 @@ class Geolocation(models.Model):
 
         unique_together = ('latitude', 'longitude', 'hostname',
                            'city', 'region', 'country', 'org')
-        verbose_name = _('Geolocation')
-        verbose_name_plural = _('Geolocations')
+        verbose_name = _('IP address information')
+        verbose_name_plural = _('IP address information')
 
     def __str__(self):
         return '%s,%s' % (self.latitude, self.longitude)
@@ -85,52 +84,52 @@ class Geolocation(models.Model):
             ip (str): IP address xxx.xxx.xxx.xxx.
 
         Returns:
-            geolocation: an instance of Geolocation.
+            ip_info: an instance of IPInfo.
         """
         data = ip_api_handler.get(ip)
         if data and any(v for v in data.values()):
-            return Geolocation.objects.get_or_create(**data)
+            return IPInfo.objects.get_or_create(**data)
         return None, False
 
     def ip_addresses(self):
-        return list(GeolocationCheck.objects.filter(
-            geolocation=self).values_list('ip_address', flat=True))
+        return list(IPInfoCheck.objects.filter(
+            ip_info=self).values_list('ip_address', flat=True))
 
 
-class GeolocationCheck(models.Model):
+class IPInfoCheck(models.Model):
     """
-    A model to keep track of the geolocation objects given IP address.
+    A model to keep track of the ip_info objects given IP address.
 
-    Geolocation objects are generated from an IP address. They may already
-    exist, so we don't want duplicates. This model attaches an IP to a
-    geolocation object. It also adds the date of the check, because an IP will
-    not always be related to the same geolocation, which changes over time.
+    IPInfo objects are generated from an IP address. They may already
+    exist, so we don't want duplicates. This model attaches an IP to an
+    ip_info object. It also adds the date of the check, because an IP will
+    not always be related to the same ip_info, which changes over time.
     """
 
     ip_address = models.GenericIPAddressField(
         verbose_name=_('IP address'), unique=True)
     date = models.DateField(
         verbose_name=_('Date'), default=datetime.date.today)
-    geolocation = models.ForeignKey(
-        Geolocation, verbose_name=_('Geolocation'))
+    ip_info = models.ForeignKey(
+        IPInfo, verbose_name=_('IPInfo'))
 
     class Meta:
         """Meta class for Django."""
 
-        verbose_name = _('Geolocation check')
-        verbose_name_plural = _('Geolocation checks')
+        verbose_name = _('IPInfo check')
+        verbose_name_plural = _('IPInfo checks')
 
     def __str__(self):
-        return '%s %s %s' % (self.ip_address, self.date, self.geolocation)
+        return '%s %s %s' % (self.ip_address, self.date, self.ip_info)
 
     @staticmethod
     def check_ip(ip):
-        geolocation, created = Geolocation.get_or_create_from_ip(ip)
-        if geolocation:
-            GeolocationCheck.objects.create(
+        ip_info, created = IPInfo.get_or_create_from_ip(ip)
+        if ip_info:
+            IPInfoCheck.objects.create(
                 ip_address=ip,
-                geolocation=geolocation)
-            return geolocation
+                ip_info=ip_info)
+            return ip_info
         return None
 
 
@@ -162,7 +161,7 @@ class RequestLog(models.Model):
         level
         message
 
-        geolocation
+        ip_info
     """
 
     # General info
@@ -207,10 +206,8 @@ class RequestLog(models.Model):
     message = models.TextField(
         verbose_name=_('Message'), blank=True)
 
-    # Geolocation
-    geolocation = models.ForeignKey(
-        Geolocation,
-        verbose_name=_('IP geolocation'), null=True)
+    # IPInfo
+    ip_info = models.ForeignKey(IPInfo, verbose_name=_('IP Info'), null=True)
 
     # Not really useful for now
     # request = models.TextField()
@@ -274,7 +271,7 @@ class RequestLog(models.Model):
                         print('Error while parsing log line: %s' % line)
                         continue
                     log_object = self.parser.data_to_log(data)
-                    log_object.update_geolocation(save=True)
+                    log_object.update_ip_info(save=True)
                     if self.stopped():
                         break
                 if self.stopped():
@@ -284,38 +281,38 @@ class RequestLog(models.Model):
     def __str__(self):
         return str(self.datetime)
 
-    def update_geolocation(self, since_days=10, save=False, force=False):
+    def update_ip_info(self, since_days=10, save=False, force=False):
         """
-        Update the geolocation.
+        Update the IP info.
 
         Args:
             since_days (int): if checked less than this number of days ago,
                 don't check again (default to 10 days).
             save (bool): whether to save anyway or not.
-            force (bool): whether to update geolocation to last checked one.
+            force (bool): whether to update ip_info to last checked one.
 
         Returns:
-            bool: check was run. Geolocation might not have been updated.
+            bool: check was run. IPInfo might not have been updated.
         """
         # If ip already checked
         try:
-            last_check = GeolocationCheck.objects.get(
+            last_check = IPInfoCheck.objects.get(
                 ip_address=self.client_ip_address)
 
             # If checked less than since_days ago, don't check again
             since_last = datetime.date.today() - last_check.date
             if since_last <= datetime.timedelta(days=since_days):
-                if not self.geolocation or (
-                        self.geolocation != last_check.geolocation and force):
-                    self.geolocation = last_check.geolocation
+                if not self.ip_info or (
+                        self.ip_info != last_check.ip_info and force):
+                    self.ip_info = last_check.ip_info
                     self.save()
                     return True
                 elif save:
                     self.save()
                 return False
 
-            # Get or create geolocation object
-            geolocation, created = Geolocation.get_or_create_from_ip(
+            # Get or create ip_info object
+            ip_info, created = IPInfo.get_or_create_from_ip(
                 self.client_ip_address)
 
             # Update check time
@@ -324,8 +321,8 @@ class RequestLog(models.Model):
 
             # Maybe data changed
             if created:
-                last_check.geolocation = geolocation
-                self.geolocation = geolocation
+                last_check.ip_info = ip_info
+                self.ip_info = ip_info
                 self.save()
                 return True
             elif save:
@@ -333,17 +330,21 @@ class RequestLog(models.Model):
 
             return False
 
-        except GeolocationCheck.DoesNotExist:
-            # Else if ip never checked, check it and set geolocation
-            self.geolocation = GeolocationCheck.check_ip(self.client_ip_address)
+        except IPInfoCheck.DoesNotExist:
+            # Else if ip never checked, check it and set ip_info
+            self.ip_info = IPInfoCheck.check_ip(self.client_ip_address)
             self.save()
 
             return True
 
     @staticmethod
     def parse_all(buffer_size=512):
+        file_path_regex = AppSettings.get_logs_file_path_regex()
+        log_format_regex = AppSettings.get_logs_format_regex()
+        top_dir = AppSettings.get_logs_top_dir()
+
         parser = NginXAccessLogParser(
-            file_path_regex=AppSettings.get_logs_file_path_regex(),
+            file_path_regex=file_path_regex if file_path_regex else None,
             log_format_regex=AppSettings.get_logs_format_regex(),
             top_dir=AppSettings.get_logs_top_dir())
 
@@ -373,30 +374,30 @@ class RequestLog(models.Model):
         print('Elapsed time: %s' % (end - start))
 
     @staticmethod
-    def geolocalize():
+    def get_ip_info():
         param = 'client_ip_address'
         unique_ips = set(RequestLog.objects.distinct(param).values_list(param, flat=True))  # noqa
-        checked_ips = set(GeolocationCheck.objects.values_list('ip_address', flat=True))  # noqa
+        checked_ips = set(IPInfoCheck.objects.values_list('ip_address', flat=True))  # noqa
         not_checked_ips = unique_ips - checked_ips
-        print('Checking IPs geolocations (%s)' % len(not_checked_ips))
+        print('Checking IP addresses information (%s)' % len(not_checked_ips))
         check_progress_bar = ProgressBar(sys.stdout, len(not_checked_ips))
         for count, ip in enumerate(not_checked_ips, 1):
             try:
-                GeolocationCheck.check_ip(ip)
+                IPInfoCheck.check_ip(ip)
             except RateExceededError:
                 print(' Rate exceeded')
                 break
             check_progress_bar.update(count)
-        no_geoloc = RequestLog.objects.filter(geolocation=None)
-        no_geoloc_ip = set(no_geoloc.distinct(param).values_list(param, flat=True))  # noqa
-        checks = GeolocationCheck.objects.filter(ip_address__in=no_geoloc_ip)
-        print('Updating request logs geolocations (%s)' % no_geoloc.count())
+        no_ip_info = RequestLog.objects.filter(ip_info=None)
+        no_ip_info_ip = set(no_ip_info.distinct(param).values_list(param, flat=True))  # noqa
+        checks = IPInfoCheck.objects.filter(ip_address__in=no_ip_info_ip)
+        print('Updating request logs\' IP info (%s)' % no_ip_info.count())
         print('%s related checks' % checks.count())
         logs_progress_bar = ProgressBar(sys.stdout, checks.count())
         for count, check in enumerate(checks, 1):
-            no_geoloc.filter(
+            no_ip_info.filter(
                 client_ip_address=check.ip_address
-            ).update(geolocation=check.geolocation)
+            ).update(ip_info=check.ip_info)
             logs_progress_bar.update(count)
 
     @staticmethod

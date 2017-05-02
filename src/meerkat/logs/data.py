@@ -9,7 +9,6 @@ obtained on Wikipedia.
 
 from django.utils.translation import ugettext as _
 
-
 STATUS_CODES = {
     # 1xx Informational
     # Request received, continuing process.

@@ -2,8 +2,8 @@
 
 from django.contrib import admin
 
-from .models import RequestLog, Geolocation, GeolocationCheck
+from .models import IPInfo, IPInfoCheck, RequestLog
 
 admin.site.register(RequestLog)
-admin.site.register(GeolocationCheck)
-admin.site.register(Geolocation)
+admin.site.register(IPInfoCheck)
+admin.site.register(IPInfo)

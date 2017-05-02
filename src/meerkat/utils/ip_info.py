@@ -112,7 +112,7 @@ class IpInfoHandler(BaseRequestRateHandler):
         for retry in range(retries):
             try:
                 response = requests.get('http://ipinfo.io/%s/json' % ip,
-                                        verify=False, timeout=1)
+                                        verify=False, timeout=1)  # nosec
                 if response.status_code == 429:
                     raise RateExceededError
                 return response.json()
@@ -149,7 +149,7 @@ class IpAPIHandler(BaseRequestRateHandler):
             try:
                 response = requests.get(
                     'http://ip-api.com/json/%s?fields=138975' % ip,
-                    verify=False, timeout=1)
+                    verify=False, timeout=1)  # nosec
                 return response.json()
             except (requests.ReadTimeout, requests.ConnectTimeout):
                 pass

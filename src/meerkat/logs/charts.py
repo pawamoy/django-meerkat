@@ -11,7 +11,6 @@ from django.conf import settings
 from django.utils.translation import ugettext as _
 
 from ..utils.url import url_is_asset, url_is_false_negative, url_is_old
-
 from .data import STATUS_CODES
 from .parsers import NginXAccessLogParser
 from .stats import most_visited_pages_stats, status_codes_stats

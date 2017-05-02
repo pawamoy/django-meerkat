@@ -26,8 +26,7 @@ def status_codes_stats(logs):
     Returns:
         dict: status code as key, number of apparition as value.
     """
-    stats = {k: 0 for k in distinct(
-        (l['status_code'] for l in logs))}
+    stats = {k: 0 for k in distinct(l['status_code'] for l in logs)}
     for log_line in logs:
         stats[log_line['status_code']] += 1
     return stats
