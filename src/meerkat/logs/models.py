@@ -17,12 +17,11 @@ import sys
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from ..apps import AppSettings
 from ..exceptions import RateExceededError
 from ..utils.file import count_lines, follow
 from ..utils.ip_info import ip_api_handler, ip_info_handler
 from ..utils.thread import StoppableThread
-from .parsers import NginXAccessLogParser
+from .parsers import get_nginx_parser
 
 try:
     from django.core.serializers.base import ProgressBar
@@ -212,15 +211,17 @@ class RequestLog(models.Model):
     verb = models.CharField(
         verbose_name=_('Verb'), max_length=30, blank=True)
     protocol = models.CharField(
-        verbose_name=_('Protocol'), max_length=10, blank=True)
+        verbose_name=_('Protocol'), max_length=30, blank=True)
     port = models.PositiveIntegerField(
         verbose_name=_('Port'), blank=True, null=True)
     file_type = models.CharField(
-        verbose_name=_('File type'), max_length=20, blank=True)
+        verbose_name=_('File type'), max_length=30, blank=True)
     https = models.BooleanField(
         verbose_name=_('HTTPS'), default=False)
     bytes_sent = models.IntegerField(
         verbose_name=_('Bytes sent'), blank=True)
+    request = models.TextField(
+        verbose_name=_('Request'), blank=True)
 
     # Error logs
     error = models.BooleanField(
@@ -362,21 +363,13 @@ class RequestLog(models.Model):
             return True
 
     @staticmethod
-    def parse_all(buffer_size=512):
-        file_path_regex = AppSettings.get_logs_file_path_regex()
-        log_format_regex = AppSettings.get_logs_format_regex()
-        top_dir = AppSettings.get_logs_top_dir()
-
-        parser = NginXAccessLogParser(
-            file_path_regex=file_path_regex if file_path_regex else None,
-            log_format_regex=AppSettings.get_logs_format_regex(),
-            top_dir=AppSettings.get_logs_top_dir())
-
+    def parse_all(buffer_size=512, progress=True):
+        parser = get_nginx_parser()
         buffer = []
         start = datetime.datetime.now()
         for log_file in parser.matching_files():
             n_lines = count_lines(log_file)
-            progress_bar = ProgressBar(sys.stdout, n_lines)
+            progress_bar = ProgressBar(sys.stdout if progress else None, n_lines)
             print('Reading log file %s: %s lines' % (log_file, n_lines))
             with open(log_file) as f:
                 for count, line in enumerate(f, 1):
@@ -436,10 +429,7 @@ class RequestLog(models.Model):
             thread: the started thread.
         """
         if not hasattr(RequestLog, 'daemon'):
-            parser = NginXAccessLogParser(
-                file_path_regex=AppSettings.get_logs_file_path_regex(),
-                log_format_regex=AppSettings.get_logs_format_regex(),
-                top_dir=AppSettings.get_logs_top_dir())
+            parser = get_nginx_parser()
             RequestLog.daemon = RequestLog.ParseToDBThread(parser, daemon=True)
         RequestLog.daemon.start()
         return RequestLog.daemon

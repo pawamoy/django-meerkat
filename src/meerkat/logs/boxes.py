@@ -10,7 +10,6 @@ django-suit-dashboard package.
 
 import json
 
-from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.utils.translation import ugettext as _
 
@@ -21,7 +20,7 @@ from .charts import (
     most_visited_pages_charts, most_visited_pages_legend_chart,
     status_codes_by_date_chart, status_codes_chart)
 from .data import STATUS_CODES
-from .parsers import NginXAccessLogParser
+from .models import RequestLog
 from .stats import status_codes_by_date_stats
 
 
@@ -46,7 +45,8 @@ class BoxLogsStatusCodes(Box):
     def widgets(self):
         status_codes = status_codes_chart()
         return [
-            Widget(content=json.dumps(status_codes),
+            Widget(html_id='status-codes',
+                   content=json.dumps(status_codes),
                    template='meerkat/widgets/highcharts.html',
                    js_code=['tooltip.formatter']),
             Widget(html_id='status-code-description',
@@ -67,48 +67,35 @@ class BoxLogsStatusCodesByDate(Box):
     @property
     def context(self):
         """Get the context."""
-        filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
-        format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
-        top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
-        parser = NginXAccessLogParser(filename_re, format_re, top_dir)
-        stats = status_codes_by_date_stats(parser.parse_files())
-
-        unique_ip_data = [{
-            'type': 'column',
-            'zIndex': 7,
-            'name': _('Unique IPs'),
-            'data': [(v['date'], v['unique_ip'])
-                     for v in stats]
-        }]
+        stats = status_codes_by_date_stats()
 
         attacks_data = [{
             'type': 'line',
             'zIndex': 9,
             'name': _('Attacks'),
-            'data': [(v['date'], v['attacks'])
+            'data': [(v[0], v[1]['attacks'])
                      for v in stats]
         }]
 
         codes_data = [{
             'zIndex': 4,
             'name': '2xx',
-            'data': [(v['date'], v['2xx']) for v in stats]
+            'data': [(v[0], v[1][200]) for v in stats]
         }, {
             'zIndex': 5,
             'name': '3xx',
-            'data': [(v['date'], v['3xx']) for v in stats]
+            'data': [(v[0], v[1][300]) for v in stats]
         }, {
             'zIndex': 6,
             'name': '4xx',
-            'data': [(v['date'], v['4xx']) for v in stats]
+            'data': [(v[0], v[1][400]) for v in stats]
         }, {
             'zIndex': 8,
             'name': '5xx',
-            'data': [(v['date'], v['5xx']) for v in stats]
+            'data': [(v[0], v[1][500]) for v in stats]
         }]
 
         return {'generic_chart': json.dumps(status_codes_by_date_chart()),
-                'unique_ip_data': json.dumps(unique_ip_data),
                 'attacks_data': json.dumps(attacks_data),
                 'codes_data': json.dumps(codes_data)}
 
@@ -152,11 +139,7 @@ class BoxLogs(Box):
     @property
     def context(self):
         """Get the context."""
-        filename_re = getattr(settings, 'LOGS_FILENAME_RE', None)
-        format_re = getattr(settings, 'LOGS_FORMAT_RE', None)
-        top_dir = getattr(settings, 'LOGS_TOP_DIR', None)
-        parser = NginXAccessLogParser(filename_re, format_re, top_dir)
-        all_logs = parser.parse_files()
+        all_logs = RequestLog.objects.all()
 
         context = {'available_years': self.get_available_years(all_logs)}
         if hasattr(self, 'year') and self.year:

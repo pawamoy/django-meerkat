@@ -8,15 +8,19 @@ Typically, these data will be used in series for Highcharts charts.
 """
 
 from collections import Counter
+from datetime import datetime
+
+from django.utils.timezone import make_naive
 
 from ..utils.list import distinct
-from ..utils.time import log_date_to_python_date, ms_since_epoch
+from ..utils.time import ms_since_epoch
 from ..utils.url import (
     url_is_asset, url_is_common_asset, url_is_false_negative, url_is_ignored,
     url_is_old, url_is_project_url)
+from .models import RequestLog
 
 
-def status_codes_stats(logs):
+def status_codes_stats():
     """
     Get stats for status codes.
 
@@ -26,62 +30,43 @@ def status_codes_stats(logs):
     Returns:
         dict: status code as key, number of apparition as value.
     """
-    stats = {k: 0 for k in distinct(l['status_code'] for l in logs)}
-    for log_line in logs:
-        stats[log_line['status_code']] += 1
-    return stats
+    return dict(Counter(list(RequestLog.objects.values_list(
+        'status_code', flat=True))))  # noqa
 
 
-def status_codes_by_date_stats(logs):
+def status_codes_by_date_stats():
     """
     Get stats for status codes by date.
-
-    Args:
-        logs (list): logs data to use.
 
     Returns:
         list: status codes + date grouped by type: 2xx, 3xx, 4xx, 5xx, attacks.
     """
+
+    def date_counter(queryset):
+        return dict(Counter(map(
+            lambda dt: ms_since_epoch(datetime.combine(
+                make_naive(dt), datetime.min.time())),
+            list(queryset.values_list('datetime', flat=True)))))
+
+    codes = {low: date_counter(
+        RequestLog.objects.filter(status_code__gte=low, status_code__lt=high))
+        for low, high in ((200, 300), (300, 400), (400, 500))}
+    codes[500] = date_counter(RequestLog.objects.filter(status_code__gte=500))
+    codes['attacks'] = date_counter(RequestLog.objects.filter(
+        status_code__in=(400, 444, 502)))
+
     stats = {}
-    for req in logs:
-        date = '%s/%s/%s' % (req['day'], req['month'], req['year'])
-        if stats.get(date, None) is None:
-            stats[date] = {'date': date, 'requests': []}
-        stats[date]['requests'].append(req)
+    for code in (200, 300, 400, 500, 'attacks'):
+        for date, count in codes[code].items():
+            if stats.get(date, None) is None:
+                stats[date] = {200: 0, 300: 0, 400: 0, 500: 0, 'attacks': 0}
+            stats[date][code] += count
 
-    for v in stats.values():
-        v['unique_ip'] = len(distinct(r['ip_address'] for r in v['requests']))
-        v['2xx'] = 0
-        v['3xx'] = 0
-        v['4xx'] = 0
-        v['5xx'] = 0
-        v['attacks'] = 0
-
-        v['date'] = ms_since_epoch(log_date_to_python_date(v['date']))
-
-        for r in v['requests']:
-            if r['status_code'].startswith('2'):
-                v['2xx'] += 1
-            elif r['status_code'].startswith('3'):
-                v['3xx'] += 1
-            elif r['status_code'].startswith('4'):
-                v['4xx'] += 1
-            elif r['status_code'].startswith('5'):
-                v['5xx'] += 1
-
-            if r['status_code'] in ('400', '444', '502'):
-                v['attacks'] += 1
-
-        v['requests'] = len(v['requests'])
-
-    stats = sorted(
-        [v for k, v in stats.items()],
-        key=lambda x: x['date'])
-
+    stats = sorted([(k, v) for k, v in stats.items()], key=lambda x: x[0])
     return stats
 
 
-def most_visited_pages_stats(logs):
+def most_visited_pages_stats():
     """
     Get stats for most visited pages.
 

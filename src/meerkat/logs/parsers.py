@@ -13,6 +13,7 @@ from os.path import abspath, join, relpath, sep
 
 from dateutil import parser as dateutil_parser
 
+from ..apps import AppSettings
 from ..utils.time import month_name_to_number
 
 
@@ -120,8 +121,7 @@ class NginXAccessLogParser(GenericParser):
         r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - (-|(\w+)) '
         r'\[(?P<day>\d{2})/(?P<month>[a-z]{3})/(?P<year>\d{4})'
         r':(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
-        r'(?P<timezone>([+-])\d{4})\] "((?P<verb>[A-Z_]+)?'
-        r' ?(?P<url>.+)(?P<protocol>HTTP/(1\.0|1\.1|2\.0))?)?" '
+        r'(?P<timezone>([+-])\d{4})\] "(?P<request>[^"]*)" '
         r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
         r'"(?P<referrer>(-)|(.+))?" "(?P<user_agent>.+)?"',
         re.IGNORECASE)
@@ -185,3 +185,14 @@ class GunicornAccessLogParser(GenericParser):
 
 class GunicornErrorLogParser(GenericParser):
     """Parser for Gunicorn error logs. Not implemented."""
+
+
+def get_nginx_parser():
+    file_path_regex = AppSettings.logs_file_path_regex.get()
+    log_format_regex = AppSettings.logs_format_regex.get()
+    top_dir = AppSettings.logs_top_dir.get()
+
+    return NginXAccessLogParser(
+        file_path_regex=file_path_regex if file_path_regex else None,
+        log_format_regex=log_format_regex,
+        top_dir=top_dir)

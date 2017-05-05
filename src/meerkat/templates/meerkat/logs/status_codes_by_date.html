@@ -13,20 +13,23 @@
 <div id="area-chart" class="widget-item-value"></div>
 <div id="percent-chart" class="widget-item-value"></div>
 <script>
-  var options = {{ box.context.generic_chart|safe }};
+  $(function() {
+    {% with c=box.context %}
+    var options = {{ c.generic_chart|safe }};
 
-  var unique_ip_data = {{ box.context.unique_ip_data|safe }};
-  var codes_data = {{ box.context.codes_data|safe }};
-  var attacks_data = {{ box.context.attacks_data|safe }};
+    var codes_data = {{ c.codes_data|safe }};
+    var attacks_data = {{ c.attacks_data|safe }};
+    {% endwith %}
 
-  options.title.text = '{% trans 'Number of requests' %}';
-{#  options.yAxis.title.text = '{% trans 'Requests' %}';#}
-  options.series = unique_ip_data.concat(codes_data, attacks_data);
-  $('#area-chart').highcharts(options);
+    options.title.text = '{% trans 'Number of requests' %}';
+  {#  options.yAxis.title.text = '{% trans 'Requests' %}';#}
+    options.series = codes_data.concat(attacks_data);
+    $('#area-chart').highcharts(options);
 
-  options.title.text = '{% trans 'Percentage' %}';
-{#  options.yAxis.title.text = '{% trans 'Percents' %}';#}
-  options.plotOptions.series = {stacking: 'percent'};
-  options.series = codes_data;
-  $('#percent-chart').highcharts(options);
+    options.title.text = '{% trans 'Percentage' %}';
+  {#  options.yAxis.title.text = '{% trans 'Percents' %}';#}
+    options.plotOptions.series = {stacking: 'percent'};
+    options.series = codes_data;
+    $('#percent-chart').highcharts(options);
+  });
 </script>
