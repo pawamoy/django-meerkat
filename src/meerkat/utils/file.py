@@ -26,6 +26,6 @@ def follow(file_name, seek_end, wait=1, stop_condition=lambda: False):
 def count_lines(file_name):
     i = -1
     with open(file_name) as f:
-        for i, l in enumerate(f):
+        for i, _ in enumerate(f):
             pass
     return i + 1

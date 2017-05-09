@@ -99,10 +99,10 @@ class IpInfoHandler(BaseRequestRateHandler):
     def _get(self, ip):
         """
         Get information about an IP.
-    
+
         Args:
             ip (str): an IP (xxx.xxx.xxx.xxx).
-    
+
         Returns:
             dict: see http://ipinfo.io/developers/getting-started
         """
@@ -119,6 +119,9 @@ class IpInfoHandler(BaseRequestRateHandler):
             except (requests.ReadTimeout, requests.ConnectTimeout):
                 pass
         return {}
+
+    def _batch(self, ips):
+        pass
 
 
 class IpAPIHandler(BaseRequestRateHandler):

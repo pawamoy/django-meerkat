@@ -2,12 +2,7 @@
 
 """Time utils."""
 
-
-from __future__ import unicode_literals
-
 from datetime import datetime, timedelta
-
-from django.utils.timezone import make_naive
 
 
 def ms_since_epoch(dt):

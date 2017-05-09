@@ -17,12 +17,12 @@ import sys
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db import DataError, IntegrityError, models, transaction
+from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from ..exceptions import RateExceededError
 from ..utils.file import count_lines, follow
-from ..utils.ip_info import ip_api_handler, ip_info_handler
+from ..utils.ip_info import ip_api_handler
 from ..utils.thread import StoppableThread
 from .parsers import get_nginx_parser
 
@@ -150,11 +150,9 @@ class IPInfoCheck(models.Model):
 
     @staticmethod
     def check_ip(ip):
-        ip_info, created = IPInfo.get_or_create_from_ip(ip)
+        ip_info, _ = IPInfo.get_or_create_from_ip(ip)
         if ip_info:
-            IPInfoCheck.objects.create(
-                ip_address=ip,
-                ip_info=ip_info)
+            IPInfoCheck.objects.create(ip_address=ip, ip_info=ip_info)
             return ip_info
         return None
 
