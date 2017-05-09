@@ -12,9 +12,13 @@ which is the difficulty here. Work is in progress.
 """
 
 import datetime
+import re
 import sys
 
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.db import models, DataError, IntegrityError
+from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 
 from ..exceptions import RateExceededError
@@ -186,6 +190,16 @@ class RequestLog(models.Model):
 
         ip_info
     """
+
+    VERBS = ['CONNECT', 'GET', 'HEAD', 'OPTIONS', 'POST',
+             'PUT' 'TRACE', 'DELETE', 'PATCH']
+    PROTOCOLS = ['HTTP/1.0', 'HTTP/1.1', 'HTTP/2.0', 'RTSP/1.0', 'SIP/2.0']
+
+    REQUEST_REGEX = re.compile(
+        r'(?P<verb>%s) (?P<url>[^\s]+?) (?P<protocol>%s)' % (
+            '|'.join(VERBS), '|'.join(PROTOCOLS)))
+
+    validate_url = URLValidator()
 
     # General info
     client_ip_address = models.GenericIPAddressField(
@@ -362,6 +376,67 @@ class RequestLog(models.Model):
 
             return True
 
+    def update_request(self,
+                       force_verb=False,
+                       force_protocol=False,
+                       force_url=False,
+                       strict_url=True):
+        modified = False
+
+        try:
+            data = re.match(self.REQUEST_REGEX, self.request).groupdict()
+        except AttributeError:
+            return
+
+        if not self.verb or (force_verb and self.verb != data['verb']):
+            self.verb = data['verb']
+            modified = True
+
+        if not self.url or (force_url and self.url != data['url']):
+            if strict_url:
+                try:
+                    self.validate_url('http://localhost%s' % data['url'])
+                    self.url = data['url']
+                    modified = True
+                except ValidationError:
+                    pass
+            else:
+                self.url = data['url']
+                modified = True
+
+        if not self.protocol or (force_protocol and
+                                 self.protocol != data['protocol']):
+            self.protocol = data['protocol']
+            modified = True
+
+        if modified:
+            self.save()
+
+    @staticmethod
+    def update_requests(batch_size=512, strict_url=True, progress=True):
+        not_treated = RequestLog.objects.filter(verb='', url='', protocol='')
+        not_treated_count = not_treated.count()
+
+        # perf improvement: avoid QuerySet.__getitem__ when doing qs[i]
+        # FIXME: though we may need to buffer because the queryset can be huge
+        not_treated = list(not_treated)
+
+        progress_bar = ProgressBar(sys.stdout if progress else None, not_treated_count)  # noqa
+        print('Updating request logs verb, url and protocol (%s)' % not_treated_count)  # noqa
+        count = 0
+        start = datetime.datetime.now()
+        while count < not_treated_count:
+            with transaction.atomic():  # is this a real improvement?
+                for _ in range(batch_size):
+                    not_treated[count].update_request(strict_url=strict_url)
+                    count += 1
+                    progress_bar.update(count)
+                    if count >= not_treated_count:
+                        break
+            # end transaction
+        end = datetime.datetime.now()
+        print('Elapsed time: %s' % (end - start))
+
     @staticmethod
     def parse_all(buffer_size=512, progress=True):
         parser = get_nginx_parser()
@@ -369,7 +444,7 @@ class RequestLog(models.Model):
         start = datetime.datetime.now()
         for log_file in parser.matching_files():
             n_lines = count_lines(log_file)
-            progress_bar = ProgressBar(sys.stdout if progress else None, n_lines)
+            progress_bar = ProgressBar(sys.stdout if progress else None, n_lines)  # noqa
             print('Reading log file %s: %s lines' % (log_file, n_lines))
             with open(log_file) as f:
                 for count, line in enumerate(f, 1):
