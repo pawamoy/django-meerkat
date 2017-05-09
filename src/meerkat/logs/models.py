@@ -17,8 +17,7 @@ import sys
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db import models, DataError, IntegrityError
-from django.db import transaction
+from django.db import DataError, IntegrityError, models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from ..exceptions import RateExceededError
