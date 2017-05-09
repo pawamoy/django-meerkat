@@ -20,8 +20,8 @@ from ..utils.time import month_name_to_number
 class GenericParser(object):
     """Generic parser. Customize it with regular expressions."""
 
-    file_path_regex = re.compile(r'^$')
-    log_format_regex = re.compile(r'^$')
+    file_path_regex = re.compile(r'^.*$')
+    log_format_regex = re.compile(r'^.*$')
     top_dir = ''
 
     def __init__(self, file_path_regex=None, log_format_regex=None, top_dir=None):

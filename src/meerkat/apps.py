@@ -21,7 +21,7 @@ class MeerkatConfig(AppConfig):
 class RegexSetting(aps.Setting):
     def check(self):
         value = self.get_raw()
-        if value is None:
+        if value == self.default:
             return
         re_type = type(re.compile(r'^$'))
         if not isinstance(value, (re_type, str)):
