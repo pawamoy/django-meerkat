@@ -121,7 +121,7 @@ class NginXAccessLogParser(GenericParser):
         r'(?P<ip_address>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - (-|(\w+)) '
         r'\[(?P<day>\d{2})/(?P<month>[a-z]{3})/(?P<year>\d{4})'
         r':(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) '
-        r'(?P<timezone>([+-])\d{4})\] "(?P<request>[^"]*)" '
+        r'(?P<timezone>([+-])\d{4})\] "(?P<request>[^"]*?)" '
         r'(?P<status_code>\d{3}) (?P<bytes_sent>\d+) '
         r'"(?P<referrer>(-)|(.+))?" "(?P<user_agent>.+)?"',
         re.IGNORECASE)
