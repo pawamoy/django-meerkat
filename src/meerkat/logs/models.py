@@ -380,7 +380,7 @@ class RequestLog(models.Model):
                        force_verb=False,
                        force_protocol=False,
                        force_url=False,
-                       strict_url=True):
+                       strict_url=False):
         modified = False
 
         try:
@@ -394,7 +394,7 @@ class RequestLog(models.Model):
 
         if not self.url or (force_url and self.url != data['url']):
             if strict_url:
-                try:
+                try:  # FIXME: url can begin with or without /
                     self.validate_url('http://localhost%s' % data['url'])
                     self.url = data['url']
                     modified = True
