@@ -2,6 +2,34 @@
 Changelog
 =========
 
+0.2.0 (2017-05-11)
+==================
+
+Implements logs models and functions:
+
+- thread to read nginx logs continuously,
+- functions and classes to get IP information from ipinfo and ip-api,
+- function to append previous logs in DB,
+- better match log lines (improved parser regex).
+
+Various additions and fixes:
+
+- Add ISP, ASN and Proxy fields in IPInfo model.
+- Add highcharts as asset.
+- Monkey patch progress bar for django18.
+- Change 'geolocation' names to 'ip_info'.
+- Add django-app-settings requirement.
+- Add verbose names.
+- Improve geolocation.
+- Register models in admin.
+- Keep reference to thread reading logs in RequestLog attributes.
+- Link sub-models in main-models module.
+- Fix deprecated IPAddressField.
+- Add initial migration.
+- Use codacy instead of codecov.
+- Change license from MPL 2.0 to ISC (no 'same license' condition).
+- Remove py33 support.
+
 0.1.0 (2016-06-08)
 ==================
 
