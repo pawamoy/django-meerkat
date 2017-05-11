@@ -312,7 +312,7 @@ class RequestLog(models.Model):
                         # TODO: log the line
                         print('Error while parsing log line: %s' % line)
                         continue
-                    log_object = self.parser.data_to_log(data)
+                    log_object = RequestLog(**self.parser.format_data(data))
                     log_object.update_ip_info(save=True)
                     if self.stopped():
                         break
