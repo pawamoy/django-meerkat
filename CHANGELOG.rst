@@ -2,6 +2,12 @@
 Changelog
 =========
 
+0.2.2 (2017-05-11)
+==================
+
+- Block thread being started if ``DJANGO_SHELL`` environment variable is set.
+- Fix log parser code.
+
 0.2.1 (2017-05-11)
 ==================
 
