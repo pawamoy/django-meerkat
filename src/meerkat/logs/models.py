@@ -65,30 +65,36 @@ class IPInfo(models.Model):
     # request. Therefore, this information must be stored in the DB
     # if we want to compute statistical data about it. We cannot query
     # web-services each time we want to do this (data changed over time).
-    latitude = models.CharField(
-        verbose_name=_('Latitude'), max_length=255, blank=True)
-    longitude = models.CharField(
-        verbose_name=_('Longitude'), max_length=255, blank=True)
+    org = models.CharField(
+        verbose_name=_('Organization'), max_length=255, blank=True)
+    asn = models.CharField(
+        verbose_name=_('ASN'), max_length=255, blank=True)
+    isp = models.CharField(
+        verbose_name=_('ISP'), max_length=255, blank=True)
+    proxy = models.NullBooleanField(
+        verbose_name=_('Proxy'), max_length=255)
     hostname = models.CharField(
         verbose_name=_('Hostname'), max_length=255, blank=True)
-    city = models.CharField(
-        verbose_name=_('City'), max_length=255, blank=True)
-    city_code = models.CharField(
-        verbose_name=_('City code'), max_length=255, blank=True)
-    region = models.CharField(
-        verbose_name=_('Region'), max_length=255, blank=True)
-    region_code = models.CharField(
-        verbose_name=_('Region code'), max_length=255, blank=True)
-    country = models.CharField(
-        verbose_name=_('Country'), max_length=255, blank=True)
-    country_code = models.CharField(
-        verbose_name=_('Country code'), max_length=255, blank=True)
     continent = models.CharField(
         verbose_name=_('Continent'), max_length=255, blank=True)
     continent_code = models.CharField(
         verbose_name=_('Continent code'), max_length=255, blank=True)
-    org = models.CharField(
-        verbose_name=_('Organization'), max_length=255, blank=True)
+    country = models.CharField(
+        verbose_name=_('Country'), max_length=255, blank=True)
+    country_code = models.CharField(
+        verbose_name=_('Country code'), max_length=255, blank=True)
+    region = models.CharField(
+        verbose_name=_('Region'), max_length=255, blank=True)
+    region_code = models.CharField(
+        verbose_name=_('Region code'), max_length=255, blank=True)
+    city = models.CharField(
+        verbose_name=_('City'), max_length=255, blank=True)
+    city_code = models.CharField(
+        verbose_name=_('City code'), max_length=255, blank=True)
+    latitude = models.CharField(
+        verbose_name=_('Latitude'), max_length=255, blank=True)
+    longitude = models.CharField(
+        verbose_name=_('Longitude'), max_length=255, blank=True)
 
     class Meta:
         """Meta class for Django."""

@@ -130,12 +130,12 @@ class IpAPIHandler(BaseRequestRateHandler):
 
     def format(self, data):
         return dict(
-            # reverse=data.get('reverse'),
-            # asn=data.get('as'),
-            # isp=data.get('isp'),
-            # proxy=data.get('proxy'),
-            latitude=data.get('lat'),
-            longitude=data.get('lon'),
+            hostname=data.get('reverse', ''),
+            asn=data.get('as', ''),
+            isp=data.get('isp', ''),
+            proxy=data.get('proxy', ''),
+            latitude=data.get('lat', ''),
+            longitude=data.get('lon', ''),
             city=data.get('city', ''),
             region=data.get('regionName', ''),
             region_code=data.get('region', ''),
@@ -147,6 +147,12 @@ class IpAPIHandler(BaseRequestRateHandler):
         return {d['query']: self.format(d) for d in data}
 
     def _get(self, ip):
+        """
+        138975 = country, countryCode, region, regionName, city, lat, lon,
+        isp, org, as, reverse, proxy
+        
+        147167 = 138975 + query
+        """
         retries = 10
         for retry in range(retries):
             try:
