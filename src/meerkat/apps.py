@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 
 from django.apps import AppConfig
@@ -14,7 +15,8 @@ class MeerkatConfig(AppConfig):
     def ready(self):
         from .models import RequestLog
         AppSettings.check()
-        if AppSettings.logs_start_daemon.get():
+        django_shell = os.environ.get('DJANGO_SHELL', False)
+        if AppSettings.logs_start_daemon.get() and not django_shell:
             RequestLog.start_daemon()
 
 
