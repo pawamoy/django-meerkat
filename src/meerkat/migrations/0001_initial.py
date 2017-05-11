@@ -20,7 +20,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('org', models.CharField(blank=True, max_length=255, verbose_name='Organization')),
-                ('reverse', models.CharField(blank=True, max_length=255, verbose_name='Reverse')),
                 ('asn', models.CharField(blank=True, max_length=255, verbose_name='ASN')),
                 ('isp', models.CharField(blank=True, max_length=255, verbose_name='ISP')),
                 ('proxy', models.NullBooleanField(max_length=255, verbose_name='Proxy')),
