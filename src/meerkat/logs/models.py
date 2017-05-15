@@ -65,6 +65,8 @@ class IPInfo(models.Model):
     # request. Therefore, this information must be stored in the DB
     # if we want to compute statistical data about it. We cannot query
     # web-services each time we want to do this (data changed over time).
+    ip_address = models.GenericIPAddressField(
+        verbose_name=_('IP address'))
     org = models.CharField(
         verbose_name=_('Organization'), max_length=255, blank=True)
     asn = models.CharField(
@@ -72,7 +74,7 @@ class IPInfo(models.Model):
     isp = models.CharField(
         verbose_name=_('ISP'), max_length=255, blank=True)
     proxy = models.NullBooleanField(
-        verbose_name=_('Proxy'), max_length=255)
+        verbose_name=_('Proxy'))
     hostname = models.CharField(
         verbose_name=_('Hostname'), max_length=255, blank=True)
     continent = models.CharField(
@@ -99,13 +101,26 @@ class IPInfo(models.Model):
     class Meta:
         """Meta class for Django."""
 
-        unique_together = ('latitude', 'longitude', 'hostname',
-                           'city', 'region', 'country', 'org')
+        unique_together = (
+            'ip_address',
+            'continent', 'continent_code',
+            'country', 'country_code',
+            'region', 'region_code',
+            'city', 'city_code',
+            'latitude', 'longitude',
+            'org', 'asn', 'isp', 'proxy', 'hostname')
         verbose_name = _('IP address information')
         verbose_name_plural = _('IP address information')
 
     def __str__(self):
-        return '%s,%s' % (self.latitude, self.longitude)
+        for attr in (self.org, self.hostname, self.asn, self.isp, self.city,
+                     self.city_code, self.region, self.region_code,
+                     self.country, self.country_code):
+            if attr:
+                return attr
+        if self.latitude and self.longitude:
+            return '%s,%s' % (self.latitude, self.longitude)
+        return repr(self)
 
     @staticmethod
     def get_or_create_from_ip(ip):
@@ -143,7 +158,7 @@ class IPInfoCheck(models.Model):
     date = models.DateField(
         verbose_name=_('Date'), default=datetime.date.today)
     ip_info = models.ForeignKey(
-        IPInfo, verbose_name=_('IPInfo'))
+        IPInfo, verbose_name=_('IPInfo'), related_name='ip_check')
 
     class Meta:
         """Meta class for Django."""
@@ -202,7 +217,8 @@ class RequestLog(models.Model):
         r'(?P<verb>%s) (?P<url>[^\s]+?) (?P<protocol>%s)' % (
             '|'.join(VERBS), '|'.join(PROTOCOLS)))
 
-    validate_url = URLValidator()
+    url_validator = URLValidator()
+    daemon = None
 
     # General info
     client_ip_address = models.GenericIPAddressField(
@@ -212,7 +228,7 @@ class RequestLog(models.Model):
     timezone = models.CharField(
         verbose_name=_('Timezone'), max_length=10, blank=True)
     url = models.URLField(
-        max_length=2047, verbose_name=_('URL'), blank=True)
+        verbose_name=_('URL'), max_length=2047, blank=True)
     status_code = models.SmallIntegerField(
         verbose_name=_('Status code'), blank=True)
     user_agent = models.TextField(
@@ -233,12 +249,14 @@ class RequestLog(models.Model):
         verbose_name=_('Port'), blank=True, null=True)
     file_type = models.CharField(
         verbose_name=_('File type'), max_length=30, blank=True)
-    https = models.BooleanField(
-        verbose_name=_('HTTPS'), default=False)
+    https = models.NullBooleanField(
+        verbose_name=_('HTTPS'))
     bytes_sent = models.IntegerField(
         verbose_name=_('Bytes sent'), blank=True)
     request = models.TextField(
         verbose_name=_('Request'), blank=True)
+    request_body = models.TextField(
+        verbose_name=_('Request body'), blank=True)
 
     # Error logs
     error = models.BooleanField(
@@ -249,10 +267,14 @@ class RequestLog(models.Model):
         verbose_name=_('Message'), blank=True)
 
     # IPInfo
-    ip_info = models.ForeignKey(IPInfo, verbose_name=_('IP Info'), null=True)
+    ip_info = models.ForeignKey(
+        IPInfo, verbose_name=_('IP Info'), null=True)
+
+    # Other
+    suspicious = models.NullBooleanField(
+        verbose_name=_('Suspicious'))
 
     # Not really useful for now
-    # request = models.TextField()
     # response_time = models.TimeField()
     # response_header = models.TextField()
     # response_body = models.TextField()
@@ -302,7 +324,15 @@ class RequestLog(models.Model):
             self.parser = parser
 
         def run(self):
-            file_name = self.parser.matching_files()[0]
+            matching_files = self.parser.matching_files()
+            if len(matching_files) > 1:
+                print('Meerkat logs: more than 1 matching log file, '
+                      'cannot follow')
+                return
+            elif not matching_files:
+                print('Meerkat logs: no matching log files, cannot follow')
+                return
+            file_name = matching_files[0]
             seek_end = True
             while True:
                 for line in follow(file_name, seek_end, 1, self.stopped):
@@ -310,9 +340,10 @@ class RequestLog(models.Model):
                         data = self.parser.parse_string(line)
                     except AttributeError:
                         # TODO: log the line
-                        print('Error while parsing log line: %s' % line)
+                        print("Meerkat: can't parse log line: %s" % line)
                         continue
                     log_object = RequestLog(**self.parser.format_data(data))
+                    log_object.complete()
                     log_object.update_ip_info(save=True)
                     if self.stopped():
                         break
@@ -379,63 +410,202 @@ class RequestLog(models.Model):
 
             return True
 
-    def update_request(self,
-                       force_verb=False,
-                       force_protocol=False,
-                       force_url=False,
-                       strict_url=False):
-        modified = False
+    def validate_url(self, url=None):
+        if url is None:
+            url = self.url
+        for u in (url, 'http://localhost/%s' % url):
+            try:
+                self.url_validator(u)
+                return True
+            except ValidationError:
+                pass
+        return False
 
+    def _request_to_verb_url_protocol(self):
         try:
-            data = re.match(self.REQUEST_REGEX, self.request).groupdict()
+            return re.match(self.REQUEST_REGEX, self.request).groupdict()
         except AttributeError:
-            return
+            return {}
 
-        if not self.verb or (force_verb and self.verb != data['verb']):
+    def complete_verb_url_protocol(self,
+                                   rewrite_verb=True,
+                                   rewrite_protocol=True,
+                                   rewrite_url=True,
+                                   strict_url=False,
+                                   save=True):
+        data = self._request_to_verb_url_protocol()
+        if not data:
+            return False
+        modified_verb = self.complete_verb(
+            data=data, rewrite=rewrite_verb, save=False)
+        modified_url = self.complete_url(
+            data=data, strict=strict_url, rewrite=rewrite_url, save=False)
+        modified_protocol = self.complete_protocol(
+            data=data, rewrite=rewrite_protocol, save=False)
+
+        modified = modified_verb | modified_url | modified_protocol
+        if modified and save:
+            self.save()
+        return modified
+
+    def complete_verb(self, data=None, rewrite=True, save=True):
+        modified = False
+        if not data:
+            data = self._request_to_verb_url_protocol()
+            if not data:
+                return False
+        if not self.verb or (rewrite and self.verb != data['verb']):
             self.verb = data['verb']
             modified = True
+        if modified and save:
+            self.save()
+        return modified
 
-        if not self.url or (force_url and self.url != data['url']):
-            if strict_url:
-                try:  # FIXME: url can begin with or without /
-                    self.validate_url('http://localhost%s' % data['url'])
+    def complete_url(self, data=None, strict=False, rewrite=True, save=True):
+        modified = False
+        if not data:
+            data = self._request_to_verb_url_protocol()
+            if not data:
+                return False
+        if not self.url or (rewrite and self.url != data['url']):
+            if strict:
+                if self.validate_url(data['url']):
                     self.url = data['url']
                     modified = True
-                except ValidationError:
-                    pass
             else:
                 self.url = data['url']
                 modified = True
+        if modified and save:
+            self.save()
+        return modified
 
-        if not self.protocol or (force_protocol and
-                                 self.protocol != data['protocol']):
+    def complete_protocol(self, data=None, rewrite=True, save=True):
+        modified = False
+        if not data:
+            data = self._request_to_verb_url_protocol()
+            if not data:
+                return False
+        if not self.protocol or (
+                rewrite and self.protocol != data['protocol']):
             self.protocol = data['protocol']
             modified = True
+        if modified and save:
+            self.save()
+        return modified
 
+    def complete_https(self, rewrite=True, save=True):
+        modified = False
+        https = None  # TODO: implement complete_https
+        if not self.https or (rewrite and self.https != https):
+            self.https = https
+            modified = True
+        if modified and save:
+            self.save()
+        return modified
+
+    # FIXME: use urllib parse_url?
+    def _url_end(self, contains=''):
+        url = self.url
+        if not url:
+            url = self._request_to_verb_url_protocol().get('url', None)
+        if url and contains in url:
+            end = url
+            if '?' in url:
+                end = end.split('?')[0]
+            elif '%3F' in url:
+                end = end.split('%3F')[0]
+            return end.split('/')[-1]
+        return ''
+
+    def complete_file_type(self, rewrite=True, save=True):
+        modified = False
+        file_type = ''
+        end = self._url_end(contains='.')
+        if '.' in end:
+            file_type = end.split('.')[-1].upper()
+            file_type = file_type.split(':')[0]
+        if not self.file_type or (rewrite and self.file_type != file_type):
+            self.file_type = file_type
+            modified = True
+        if modified and save:
+            self.save()
+        return modified
+
+    def complete_port(self, rewrite=True, save=True):
+        modified = False
+        port = ''
+        end = self._url_end(contains=':')
+        if ':' in end:
+            port = end.split(':')[-1].upper()
+            try:
+                port = int(port)
+            except ValueError:
+                port = ''
+        if not self.port or (rewrite and self.port != port):
+            self.port = port
+            modified = True
+        if modified and save:
+            self.save()
+        return modified
+
+    def complete_suspicious(self, rewrite=True, save=True):
+        modified = False
+        suspicious = None  # TODO: implement complete_suspicious
+        if not self.suspicious or (rewrite and self.suspicious != suspicious):
+            self.suspicious = suspicious
+            modified = True
+        if modified and save:
+            self.save()
+        return modified
+
+    def complete(self, rewrite=True, **kwargs):
+        rewrite_verb = kwargs.pop('rewrite_verb', rewrite)
+        rewrite_url = kwargs.pop('rewrite_url', rewrite)
+        rewrite_protocol = kwargs.pop('rewrite_protocol', rewrite)
+        rewrite_https = kwargs.pop('rewrite_https', rewrite)
+        rewrite_file_type = kwargs.pop('rewrite_file_type', rewrite)
+        rewrite_suspicious = kwargs.pop('rewrite_suspicious', rewrite)
+        strict_url = kwargs.pop('strict_url', False)
+
+        modified_vup = self.complete_verb_url_protocol(
+            rewrite_verb=rewrite_verb,
+            rewrite_url=rewrite_url,
+            rewrite_protocol=rewrite_protocol,
+            strict_url=strict_url,
+            save=False)
+        modified_https = self.complete_https(
+            rewrite=rewrite_https, save=False)
+        modified_file_type = self.complete_file_type(
+            rewrite=rewrite_file_type, save=False)
+        modified_port = self.complete_port(
+            rewrite=rewrite_file_type, save=False)
+        modified_suspicious = self.complete_suspicious(
+            rewrite=rewrite_suspicious, save=False)
+
+        modified = any((
+            modified_vup, modified_https, modified_file_type,
+            modified_port, modified_suspicious))
         if modified:
             self.save()
+        return modified
 
     @staticmethod
-    def update_requests(batch_size=512, strict_url=True, progress=True):
-        not_treated = RequestLog.objects.filter(verb='', url='', protocol='')
-        not_treated_count = not_treated.count()
-
+    def autocomplete(queryset, batch_size=512, rewrite=True, progress=True, **kwargs):  # noqa
         # perf improvement: avoid QuerySet.__getitem__ when doing qs[i]
         # FIXME: though we may need to buffer because the queryset can be huge
-        not_treated = list(not_treated)
-
-        progress_bar = ProgressBar(sys.stdout if progress else None, not_treated_count)  # noqa
-        print('Updating request logs verb, url and protocol (%s)' % not_treated_count)  # noqa
+        total = queryset.count()
+        progress_bar = ProgressBar(sys.stdout if progress else None, total)
+        print('Completing information for %s request logs' % total)
         count = 0
+
         start = datetime.datetime.now()
-        while count < not_treated_count:
+        while count < total:
+            buffer = queryset[count:count+batch_size]
             with transaction.atomic():  # is this a real improvement?
-                for _ in range(batch_size):
-                    not_treated[count].update_request(strict_url=strict_url)
+                for obj in buffer:
+                    obj.complete(rewrite=rewrite, **kwargs)
                     count += 1
                     progress_bar.update(count)
-                    if count >= not_treated_count:
-                        break
             # end transaction
         end = datetime.datetime.now()
         print('Elapsed time: %s' % (end - start))
@@ -506,7 +676,7 @@ class RequestLog(models.Model):
         Returns:
             thread: the started thread.
         """
-        if not hasattr(RequestLog, 'daemon'):
+        if RequestLog.daemon is None:
             parser = get_nginx_parser()
             RequestLog.daemon = RequestLog.ParseToDBThread(parser, daemon=True)
         RequestLog.daemon.start()

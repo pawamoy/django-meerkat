@@ -2,6 +2,12 @@
 Changelog
 =========
 
+0.2.3 (2017-05-??)
+==================
+
+- Remove use of ``DJANGO_SHELL`` environment variable (to be done by user).
+- Implement autocomplete functions in ``RequestLog`` to populate some values.
+
 0.2.2 (2017-05-11)
 ==================
 
