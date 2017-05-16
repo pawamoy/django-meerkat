@@ -9,7 +9,9 @@ from data.
 
 from django.utils.translation import ugettext as _
 
-from ..utils.url import url_is_asset, url_is_false_negative, url_is_old
+from ..utils.url import (
+    ASSET, COMMON_ASSET, OLD_ASSET, OLD_PROJECT,
+    PROJECT, SUSPICIOUS, FALSE_NEGATIVE)
 from .data import STATUS_CODES
 from .stats import most_visited_pages_stats, status_codes_stats
 
@@ -84,6 +86,17 @@ def status_codes_by_date_chart():
     }
 
 
+URL_TYPE_COLOR = {
+    PROJECT: '#AFE4FD',
+    ASSET: '#DBDBDB',
+    COMMON_ASSET: '#F1F2B6',
+    OLD_ASSET: '#808080',
+    OLD_PROJECT: '#B6B6F2',
+    FALSE_NEGATIVE: '#9CD8AC',
+    SUSPICIOUS: '#FFB31A'
+}
+
+
 def most_visited_pages_legend_chart():
     """Chart for most visited pages legend."""
     return {
@@ -129,13 +142,13 @@ def most_visited_pages_legend_chart():
         'series': [{
             'name': _('Legend'),
             'data': [
-                {'color': '#AFE4FD', 'y': 1},
-                {'color': '#F1F2B6', 'y': 1},
-                {'color': '#DBDBDB', 'y': 1},
-                {'color': '#808080', 'y': 1},
-                {'color': '#B6B6F2', 'y': 1},
-                {'color': '#9CD8AC', 'y': 1},
-                {'color': '#FFB31A', 'y': 1},
+                {'color': URL_TYPE_COLOR[PROJECT], 'y': 1},
+                {'color': URL_TYPE_COLOR[OLD_PROJECT], 'y': 1},
+                {'color': URL_TYPE_COLOR[ASSET], 'y': 1},
+                {'color': URL_TYPE_COLOR[OLD_ASSET], 'y': 1},
+                {'color': URL_TYPE_COLOR[COMMON_ASSET], 'y': 1},
+                {'color': URL_TYPE_COLOR[FALSE_NEGATIVE], 'y': 1},
+                {'color': URL_TYPE_COLOR[SUSPICIOUS], 'y': 1},
             ]
         }]
     }
@@ -162,7 +175,7 @@ def most_visited_pages_charts():
                         bound, stats['more_than_10'][i - 1]['bound']))
             },
             'xAxis': {
-                'categories': [u for (c, u, v) in subset],
+                'categories': [u for (u, c, t) in subset],
                 'title': {
                     'text': None
                 }
@@ -191,25 +204,12 @@ def most_visited_pages_charts():
         }
 
         series_data = []
-        for index, (count, url, valid) in enumerate(subset):
+        for index, (url, count, url_type) in enumerate(subset):
             data = {
                 'x': index,
                 'y': count
             }
-            if valid:
-                if not url_is_asset(url):
-                    color = '#AFE4FD'
-                else:
-                    color = '#DBDBDB'
-            else:
-                if url_is_asset(url):
-                    color = '#F1F2B6'
-                elif url_is_old(url):
-                    color = '#B6B6F2'
-                elif url_is_false_negative(url):
-                    color = '#9CD8AC'
-                else:
-                    color = '#FFB31A'
+            color = URL_TYPE_COLOR[url_type]
             data['color'] = color
             series_data.append(data)
         chart_options['series'] = [{
@@ -257,60 +257,60 @@ def most_visited_pages_charts():
             'colorByPoint': True,
             'data': [{
                 'name': _('Valid project URL'),
-                'dis': occurrences['project']['distinct'],
-                'y': occurrences['project']['total'],
-                'occ': occurrences['project']['total'],
+                'dis': occurrences[PROJECT]['distinct'],
+                'y': occurrences[PROJECT]['total'],
+                'occ': occurrences[PROJECT]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#AFE4FD'
+                'color': URL_TYPE_COLOR[PROJECT]
             }, {
                 'name': _('Old project URL'),
-                'dis': occurrences['old_project']['distinct'],
-                'y': occurrences['old_project']['total'],
-                'occ': occurrences['old_project']['total'],
+                'dis': occurrences[OLD_PROJECT]['distinct'],
+                'y': occurrences[OLD_PROJECT]['total'],
+                'occ': occurrences[OLD_PROJECT]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#B6B6F2'
+                'color': URL_TYPE_COLOR[OLD_PROJECT]
             }, {
                 'name': _('Valid asset URL'),
-                'dis': occurrences['asset']['distinct'],
-                'y': occurrences['asset']['total'],
-                'occ': occurrences['asset']['total'],
+                'dis': occurrences[ASSET]['distinct'],
+                'y': occurrences[ASSET]['total'],
+                'occ': occurrences[ASSET]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#DBDBDB'
+                'color': URL_TYPE_COLOR[ASSET]
             }, {
                 'name': _('Old asset URL'),
-                'dis': occurrences['old_asset']['distinct'],
-                'y': occurrences['old_asset']['total'],
-                'occ': occurrences['old_asset']['total'],
+                'dis': occurrences[OLD_ASSET]['distinct'],
+                'y': occurrences[OLD_ASSET]['total'],
+                'occ': occurrences[OLD_ASSET]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#808080'
+                'color': URL_TYPE_COLOR[OLD_ASSET]
             }, {
                 'name': _('Common asset URL'),
-                'dis': occurrences['common_asset']['distinct'],
-                'y': occurrences['common_asset']['total'],
-                'occ': occurrences['common_asset']['total'],
+                'dis': occurrences[COMMON_ASSET]['distinct'],
+                'y': occurrences[COMMON_ASSET]['total'],
+                'occ': occurrences[COMMON_ASSET]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#F1F2B6'
+                'color': URL_TYPE_COLOR[COMMON_ASSET]
             }, {
                 'name': _('False-negative project URL'),
-                'dis': occurrences['false']['distinct'],
-                'y': occurrences['false']['total'],
-                'occ': occurrences['false']['total'],
+                'dis': occurrences[FALSE_NEGATIVE]['distinct'],
+                'y': occurrences[FALSE_NEGATIVE]['total'],
+                'occ': occurrences[FALSE_NEGATIVE]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#9CD8AC'
+                'color': URL_TYPE_COLOR[FALSE_NEGATIVE]
             }, {
                 'name': _('Suspicious URL (potential attack)'),
-                'dis': occurrences['suspicious']['distinct'],
-                'y': occurrences['suspicious']['total'],
-                'occ': occurrences['suspicious']['total'],
+                'dis': occurrences[SUSPICIOUS]['distinct'],
+                'y': occurrences[SUSPICIOUS]['total'],
+                'occ': occurrences[SUSPICIOUS]['total'],
                 'total_dis': total_distinct,
                 'total_occ': total_occurrences,
-                'color': '#FFB31A'
+                'color': URL_TYPE_COLOR[SUSPICIOUS]
             }]
         }]
     })

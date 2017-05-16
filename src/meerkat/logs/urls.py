@@ -2,11 +2,10 @@
 
 """URLs for log submodule."""
 
-from django.conf.urls import include, url
+from django.conf.urls import url
 
 from .views import (
-    LogsMenu, LogsMostVisitedPages, LogsStatusCodes, LogsStatusCodesByDate,
-    LogsView)
+    LogsMenu, LogsMostVisitedPages, LogsStatusCodes, LogsStatusCodesByDate)
 
 
 def logs_urlpatterns(admin_view):
@@ -19,7 +18,6 @@ def logs_urlpatterns(admin_view):
     Returns:
         list: the URL patterns for the logs views.
     """
-    logs_view = LogsView.as_view()
     return [
         url(r'^$',
             admin_view(LogsMenu.as_view()),
@@ -32,26 +30,7 @@ def logs_urlpatterns(admin_view):
             name='logs_status_codes_by_date'),
         url(r'^most_visited_pages$',
             admin_view(LogsMostVisitedPages.as_view()),
-            name='logs_most_visited_pages'),
-        url(r'^list/', include([
-            url(r'^$',
-                admin_view(logs_view),
-                name='logs_list'),
-            url(r'^(?P<year>[0-9]{4})/$',
-                admin_view(logs_view),
-                name='logs_list_year'),
-            url(r'^(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/$',
-                admin_view(logs_view),
-                name='logs_list_month'),
-            url(r'^(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/'
-                r'(?P<day>[0-9]{2})/$',
-                admin_view(logs_view),
-                name='logs_list_day'),
-            url(r'^(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/'
-                r'(?P<day>[0-9]{2})/(?P<hour>[0-9]{2})/$',
-                admin_view(logs_view),
-                name='logs_list_hour'),
-        ]))
+            name='logs_most_visited_pages')
     ]
 
 

@@ -8,7 +8,7 @@ from suit_dashboard.layout import Column, Grid, Row
 from suit_dashboard.views import DashboardView
 
 from .boxes import (
-    BoxLogs, BoxLogsLinks, BoxLogsMostVisitedPages,
+    BoxLogsLinks, BoxLogsMostVisitedPages,
     BoxLogsMostVisitedPagesLegend, BoxLogsStatusCodes,
     BoxLogsStatusCodesByDate)
 
@@ -54,32 +54,3 @@ class LogsMostVisitedPages(LogsMenu):
     grid = Grid(Row(Column(BoxLogsLinks(), width=5),
                     Column(BoxLogsMostVisitedPagesLegend(), width=7)),
                 Row(Column(BoxLogsMostVisitedPages())))
-
-
-class LogsView(LogsMenu):
-    """View for logs pages."""
-
-    crumbs = ({'name': _('Logs'), 'url': 'admin:logs'}, )
-
-    def get(self, request, *args, **kwargs):
-        """
-        Allow to pass GET parameters for pagination.
-
-        Args:
-            request (request): the django request.
-            *args (): request arguments.
-            **kwargs (): optional year, month, day and hour, and more.
-
-        Returns:
-            the rendered django view.
-        """
-        self.extra_context = {
-            'year': kwargs.pop('year', None),
-            'month': kwargs.pop('month', None),
-            'day': kwargs.pop('day', None),
-            'hour': kwargs.pop('hour', None),
-            'page': request.GET.get('page')
-        }
-        self.grid = Grid(Row(Column(BoxLogsLinks(),
-                                    BoxLogs(**self.extra_context))))
-        return super(LogsView, self).get(request, *args, **kwargs)

@@ -70,9 +70,10 @@ class IPInfo(models.Model):
     org = models.CharField(
         verbose_name=_('Organization'), max_length=255, blank=True)
     asn = models.CharField(
-        verbose_name=_('ASN'), max_length=255, blank=True)
+        verbose_name=_('Autonomous System'), max_length=255, blank=True)
     isp = models.CharField(
-        verbose_name=_('ISP'), max_length=255, blank=True)
+        verbose_name=_('Internet Service Provider'),
+        max_length=255, blank=True)
     proxy = models.NullBooleanField(
         verbose_name=_('Proxy'))
     hostname = models.CharField(
@@ -93,6 +94,7 @@ class IPInfo(models.Model):
         verbose_name=_('City'), max_length=255, blank=True)
     city_code = models.CharField(
         verbose_name=_('City code'), max_length=255, blank=True)
+    # TODO: maybe store latitude and longitude as Float?
     latitude = models.CharField(
         verbose_name=_('Latitude'), max_length=255, blank=True)
     longitude = models.CharField(
@@ -179,35 +181,7 @@ class IPInfoCheck(models.Model):
 
 
 class RequestLog(models.Model):
-    """
-    A model to store the request logs.
-
-    Work in progress.
-
-    Attributes:
-        client_ip_address
-        datetime
-        timezone
-        url
-        status_code
-        user_agent
-        referrer
-        upstream
-        host
-        server
-        verb
-        protocol
-        port
-        file_type
-        https
-        bytes_sent
-
-        error
-        level
-        message
-
-        ip_info
-    """
+    """A model to store the request logs."""
 
     VERBS = ['CONNECT', 'GET', 'HEAD', 'OPTIONS', 'POST',
              'PUT' 'TRACE', 'DELETE', 'PATCH']
@@ -533,14 +507,14 @@ class RequestLog(models.Model):
 
     def complete_port(self, rewrite=True, save=True):
         modified = False
-        port = ''
+        port = None
         end = self._url_end(contains=':')
         if ':' in end:
             port = end.split(':')[-1].upper()
             try:
                 port = int(port)
             except ValueError:
-                port = ''
+                port = None
         if not self.port or (rewrite and self.port != port):
             self.port = port
             modified = True
@@ -558,7 +532,7 @@ class RequestLog(models.Model):
             self.save()
         return modified
 
-    def complete(self, rewrite=True, **kwargs):
+    def complete(self, rewrite=True, save=True, **kwargs):
         rewrite_verb = kwargs.pop('rewrite_verb', rewrite)
         rewrite_url = kwargs.pop('rewrite_url', rewrite)
         rewrite_protocol = kwargs.pop('rewrite_protocol', rewrite)
@@ -585,7 +559,7 @@ class RequestLog(models.Model):
         modified = any((
             modified_vup, modified_https, modified_file_type,
             modified_port, modified_suspicious))
-        if modified:
+        if modified and save:
             self.save()
         return modified
 
@@ -627,7 +601,9 @@ class RequestLog(models.Model):
                         # TODO: log the line
                         print('Error while parsing log line: %s' % line)
                         continue
-                    buffer.append(RequestLog(**parser.format_data(data)))
+                    log_object = RequestLog(**parser.format_data(data))
+                    log_object.complete(save=False)
+                    buffer.append(log_object)
                     if len(buffer) >= buffer_size:
                         RequestLog.objects.bulk_create(buffer)
                         buffer.clear()

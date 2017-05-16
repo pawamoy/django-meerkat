@@ -2,54 +2,14 @@
 
 """URL utils."""
 
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.urlresolvers import Resolver404, resolve
 
-URL_WHITE_LIST = {
-    'ASSETS': {
-        'PREFIXES': (
-            'media/', 'static/', 'assets/', 'cache/', 'markdown/image/'
-        )
-    },
-
-    'COMMON_ASSETS': {
-        'CONSTANTS': (
-            'favicon.ico', 'robots.txt', 'apple-touch-icon.png',
-            'apple-touch-icon-precomposed.png',
-            'apple-touch-icon-120x120.png',
-            'apple-touch-icon-120x120-precomposed.png'
-        )
-    },
-
-    'OLD': {
-        'PREFIXES': (
-            'admin/', 'members/', 'chart/', 'forums/', 'news/',
-            'member/', 'questions/', 'matrix/', 'pprofile/', 'rosetta/'
-        ),
-        'CONSTANTS': (
-            'visual/', 'communities/', 'welcome/', 'jsi18n/',
-            'overview/', 'profile/', 'settings/', 'chart', 'login'
-        )
-    },
-
-    'FALSE_NEGATIVE': {
-        'PREFIXES': (
-            'articles/', 'chaining/', 'login/?next='
-        )
-    },
-
-    'IGNORED': {
-        'PREFIXES': (
-            'assets/flash/ZeroClipboard.swf',
-        )
-    }
-}
+from ..apps import AppSettings
 
 
-def url_is_project_url(url, default='not_a_func'):
+def url_is_project(url, default='not_a_func'):
     """
     Check if URL is part of the current project's URLs.
 
@@ -71,6 +31,8 @@ def url_is_project_url(url, default='not_a_func'):
             url = url[len(static_url):]
         elif url.startswith(static_url_wd):
             url = url[len(static_url_wd):]
+        else:
+            return False
         if finders.find(url):
             return True
     return False
@@ -98,9 +60,33 @@ def url_is(white_list):
         return False
     return func
 
+ASSET = 1
+PROJECT = 2
+OLD_ASSET = 3
+COMMON_ASSET = 4
+OLD_PROJECT = 5
+FALSE_NEGATIVE = 6
+SUSPICIOUS = 7
+IGNORED = 8
 
-url_is_asset = url_is(URL_WHITE_LIST['ASSETS'])
-url_is_common_asset = url_is(URL_WHITE_LIST['COMMON_ASSETS'])
-url_is_old = url_is(URL_WHITE_LIST['OLD'])
-url_is_false_negative = url_is(URL_WHITE_LIST['FALSE_NEGATIVE'])
-url_is_ignored = url_is(URL_WHITE_LIST['IGNORED'])
+URL_TYPE = {
+    ASSET: 'ASSET',
+    PROJECT: 'PROJECT',
+    OLD_ASSET: 'OLD_ASSET',
+    COMMON_ASSET: 'COMMON_ASSET',
+    OLD_PROJECT: 'OLD_PROJECT',
+    FALSE_NEGATIVE: 'FALSE_NEGATIVE',
+    SUSPICIOUS: 'SUSPICIOUS',
+    IGNORED: 'IGNORED'
+}
+
+URL_TYPE_REVERSE = {v: k for k, v in URL_TYPE.items()}
+
+
+URL_WHITELIST = AppSettings.logs_url_whitelist.get()
+url_is_asset = url_is(URL_WHITELIST[URL_TYPE[ASSET]])
+url_is_old_asset = url_is(URL_WHITELIST[URL_TYPE[OLD_ASSET]])
+url_is_common_asset = url_is(URL_WHITELIST[URL_TYPE[COMMON_ASSET]])
+url_is_old_project = url_is(URL_WHITELIST[URL_TYPE[OLD_PROJECT]])
+url_is_false_negative = url_is(URL_WHITELIST[URL_TYPE[FALSE_NEGATIVE]])
+url_is_ignored = url_is(URL_WHITELIST[URL_TYPE[IGNORED]])

@@ -13,6 +13,7 @@ from ..exceptions import RateExceededError
 class BaseRequestRateHandler(object):
     rate = 0
     per = 0
+    support_batch = False
 
     def __init__(self, rate=None, per=None):
         self.timedelta_type = type(timedelta())
@@ -127,6 +128,7 @@ class IpInfoHandler(BaseRequestRateHandler):
 class IpAPIHandler(BaseRequestRateHandler):
     rate = 150
     per = 60
+    support_batch = True
 
     def format(self, data):
         return dict(

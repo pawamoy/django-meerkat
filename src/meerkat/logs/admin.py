@@ -22,6 +22,8 @@ class RequestLogAdmin(admin.ModelAdmin):
         'status_code', 'verb', 'protocol', 'file_type', 'https', 'error',
         'level', 'suspicious')
 
+    date_hierarchy = 'datetime'
+
     def ip_info_link(self, obj):
         instance = obj.ip_info
         if instance is None:
@@ -35,14 +37,21 @@ class RequestLogAdmin(admin.ModelAdmin):
 
 class IPInfoCheckAdmin(admin.ModelAdmin):
     list_display = ('date', 'ip_address', 'ip_info')
+    date_hierarchy = 'date'
 
 
 class IPInfoAdmin(admin.ModelAdmin):
     list_display = (
-        'org', 'asn', 'isp', 'proxy', 'hostname', 'see_on_map', 'continent',
-        'continent_code', 'country', 'country_code', 'region', 'region_code',
+        'ip_address', 'org', 'asn', 'isp', 'proxy', 'hostname', 'see_on_map',
+        'continent', 'continent_code', 'country', 'country_code',
+        'region', 'region_code',
         'city', 'city_code', 'latitude', 'longitude'
     )
+
+    readonly_fields = ('see_on_map', )
+
+    list_filter = ('proxy', 'continent', 'continent_code',
+                   'country', 'country_code')
 
     fieldsets = (
         (None, {
@@ -50,9 +59,9 @@ class IPInfoAdmin(admin.ModelAdmin):
         }),
         (_('Geolocation'), {
             'fields': (
+                'see_on_map', 'latitude', 'longitude',
                 'continent', 'continent_code', 'country', 'country_code',
-                'region', 'region_code', 'city', 'city_code',
-                'latitude', 'longitude', 'see_on_map'),
+                'region', 'region_code', 'city', 'city_code'),
         }),
     )
 

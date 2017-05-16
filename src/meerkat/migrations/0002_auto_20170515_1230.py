@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='ipinfo',
             name='ip_address',
-            field=models.GenericIPAddressField(default='0.0.0.0', verbose_name='IP address'),
+            field=models.GenericIPAddressField(verbose_name='IP address'),
             preserve_default=False,
         ),
         migrations.AddField(

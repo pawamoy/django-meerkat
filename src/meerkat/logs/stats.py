@@ -12,11 +12,12 @@ from datetime import datetime
 
 from django.utils.timezone import make_naive
 
-from ..utils.list import distinct
 from ..utils.time import ms_since_epoch
 from ..utils.url import (
     url_is_asset, url_is_common_asset, url_is_false_negative, url_is_ignored,
-    url_is_old, url_is_project_url)
+    url_is_old_project, url_is_project,
+    URL_TYPE, ASSET, OLD_ASSET, OLD_PROJECT, PROJECT,
+    SUSPICIOUS, IGNORED, COMMON_ASSET, FALSE_NEGATIVE, URL_TYPE_REVERSE)
 from .models import RequestLog
 
 
@@ -77,63 +78,75 @@ def most_visited_pages_stats():
         dict: more_than_10 and less_than_10: list of dict (bound + url list).
     """
     stats = {'more_than_10': [], 'less_than_10': {}}
-    urls = [u for u in (l['url'].lstrip('/').rstrip(' ')
-                        for l in logs)
-            if not url_is_ignored(u)]
-    counter = Counter(urls)
-    most_visited_pages = sorted(
-        [(counter[u], u, url_is_project_url(u))
-         for u in distinct(urls)],
-        key=lambda x: x[0],
-        reverse=True)
 
-    if most_visited_pages[0][1] == '':
-        most_visited_pages[0] = (
-            most_visited_pages[0][0],
-            '/',
-            most_visited_pages[0][2])
-
+    counter = Counter(list(RequestLog.objects.values_list('url', flat=True)))
+    most_visited_pages = counter.most_common()
     bounds = (10000, 1000, 100, 10)
+    subsets = [[] for _ in bounds]
 
-    for i, b in enumerate(bounds):
-        if i == 0:
-            subset = [(c, u, v) for (c, u, v) in most_visited_pages
-                      if c >= b]
+    for u, c in most_visited_pages:
+        if url_is_ignored(u):
+            continue
+        if c >= bounds[0]:
+            subsets[0].append([u, c])
+        elif c < bounds[-1]:
+            subsets[-1].append([u, c])
         else:
-            subset = [(c, u, v) for (c, u, v) in most_visited_pages
-                      if b <= c < bounds[i - 1]]
+            for i, bound in enumerate(bounds[:-1]):
+                if bound > c >= bounds[i+1]:
+                    subsets[i+1].append([u, c])
+                    break
 
-        stats['more_than_10'].append({'bound': b, 'subset': subset})
+    stats['more_than_10'] = [
+        {'bound': bound, 'subset': subset}
+        for bound, subset in zip(bounds[:-1], subsets[:-1])]
 
-    subset = [(c, u, v) for (c, u, v) in most_visited_pages if 1 <= c < 10]
-    occurrences = {name: {'distinct': 0, 'total': 0} for name in (
-        'project', 'old_project', 'asset', 'old_asset', 'common_asset',
-        'false', 'suspicious'
-    )}
-    for (c, u, v) in subset:
-        if v:
-            if not url_is_asset(u):
-                occurrences['project']['distinct'] += 1
-                occurrences['project']['total'] += c
+    for subset in subsets[:-1]:
+        for uc in subset:
+            if url_is_project(uc[0]):
+                if url_is_asset(uc[0]):
+                    uc.append(ASSET)
+                else:
+                    uc.append(PROJECT)
             else:
-                occurrences['asset']['distinct'] += 1
-                occurrences['asset']['total'] += c
+                if url_is_asset(uc[0]):
+                    uc.append(OLD_ASSET)
+                elif url_is_common_asset(uc[0]):
+                    uc.append(COMMON_ASSET)
+                elif url_is_old_project(uc[0]):
+                    uc.append(OLD_PROJECT)
+                elif url_is_false_negative(uc[0]):
+                    uc.append(FALSE_NEGATIVE)
+                else:
+                    uc.append(SUSPICIOUS)
+
+    occurrences = {name: {'distinct': 0, 'total': 0}
+                   for name in set(URL_TYPE.keys()) - {IGNORED}}
+
+    for u, c in subsets[-1]:
+        if url_is_project(u):
+            if url_is_asset(u):
+                occurrences[ASSET]['distinct'] += 1
+                occurrences[ASSET]['total'] += c
+            else:
+                occurrences[PROJECT]['distinct'] += 1
+                occurrences[PROJECT]['total'] += c
         else:
             if url_is_asset(u):
-                occurrences['old_asset']['distinct'] += 1
-                occurrences['old_asset']['total'] += c
+                occurrences[OLD_ASSET]['distinct'] += 1
+                occurrences[OLD_ASSET]['total'] += c
             elif url_is_common_asset(u):
-                occurrences['common_asset']['distinct'] += 1
-                occurrences['common_asset']['total'] += c
-            elif url_is_old(u):
-                occurrences['old_project']['distinct'] += 1
-                occurrences['old_project']['total'] += c
+                occurrences[COMMON_ASSET]['distinct'] += 1
+                occurrences[COMMON_ASSET]['total'] += c
+            elif url_is_old_project(u):
+                occurrences[OLD_PROJECT]['distinct'] += 1
+                occurrences[OLD_PROJECT]['total'] += c
             elif url_is_false_negative(u):
-                occurrences['false']['distinct'] += 1
-                occurrences['false']['total'] += c
+                occurrences[FALSE_NEGATIVE]['distinct'] += 1
+                occurrences[FALSE_NEGATIVE]['total'] += c
             else:
-                occurrences['suspicious']['distinct'] += 1
-                occurrences['suspicious']['total'] += c
+                occurrences[SUSPICIOUS]['distinct'] += 1
+                occurrences[SUSPICIOUS]['total'] += c
 
     stats['less_than_10'] = occurrences
 
