@@ -8,7 +8,7 @@ from .views import (
     LogsMenu, LogsMostVisitedPages, LogsStatusCodes, LogsStatusCodesByDate)
 
 
-def logs_urlpatterns(admin_view):
+def logs_urlpatterns(admin_view=lambda x: x):
     """
     Return the URL patterns for the logs views.
 
@@ -34,4 +34,4 @@ def logs_urlpatterns(admin_view):
     ]
 
 
-# TODO: add app_name and urlpatterns variable
+urlpatterns = logs_urlpatterns()

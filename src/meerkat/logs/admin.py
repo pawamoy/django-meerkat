@@ -40,7 +40,35 @@ class IPInfoCheckAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
 
 
+class CheckInline(admin.TabularInline):
+    model = IPInfoCheck
+    extra = 0
+    fields = ('date', 'ip_address', 'ip_info')
+    readonly_fields = fields
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+
+class LogInline(admin.TabularInline):
+    model = RequestLog
+    extra = 0
+    fields = ('datetime', 'request', 'status_code', 'user_agent', 'referrer')
+    readonly_fields = fields
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+
 class IPInfoAdmin(admin.ModelAdmin):
+    inlines = [CheckInline, LogInline]
+
     list_display = (
         'ip_address', 'org', 'asn', 'isp', 'proxy', 'hostname', 'see_on_map',
         'continent', 'continent_code', 'country', 'country_code',
@@ -55,7 +83,7 @@ class IPInfoAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('org', 'asn', 'isp', 'proxy', 'hostname')
+            'fields': ('ip_address', 'org', 'asn', 'isp', 'proxy', 'hostname')
         }),
         (_('Geolocation'), {
             'fields': (
@@ -66,9 +94,8 @@ class IPInfoAdmin(admin.ModelAdmin):
     )
 
     def see_on_map(self, obj):
-        ip_address = obj.ip_check.all()[0].ip_address
-        geolocation_url = google_maps_geoloc_link(ip_address)
-        return format_html('<a href="{}">{}</a>', geolocation_url, obj)
+        geo_url = google_maps_geoloc_link((obj.latitude, obj.longitude))
+        return format_html('<a href="{}">{}</a>', geo_url, obj)
     see_on_map.short_description = _('See on map')
 
 

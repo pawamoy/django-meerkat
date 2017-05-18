@@ -13,9 +13,8 @@ from django.contrib.admin.sites import AdminSite
 
 from suit_dashboard import get_realtime_urls
 
-from .logs.views import (
-    HomeView, LogsMenu, LogsMostVisitedPages, LogsStatusCodes,
-    LogsStatusCodesByDate)
+from .views import HomeView
+from .logs.urls import logs_urlpatterns
 
 
 class DashboardSite(AdminSite):
@@ -33,20 +32,7 @@ class DashboardSite(AdminSite):
             url(r'^$',
                 self.admin_view(HomeView.as_view()),
                 name='index'),
-            url(r'^logs/', include([
-                url(r'^$',
-                    self.admin_view(LogsMenu.as_view()),
-                    name='logs'),
-                url(r'^status_codes$',
-                    self.admin_view(LogsStatusCodes.as_view()),
-                    name='logs_status_codes'),
-                url(r'^status_codes_by_date$',
-                    self.admin_view(LogsStatusCodesByDate.as_view()),
-                    name='logs_status_codes_by_date'),
-                url(r'^most_visited_pages$',
-                    self.admin_view(LogsMostVisitedPages.as_view()),
-                    name='logs_most_visited_pages'),
-            ])),
+            url(r'^logs/', include(logs_urlpatterns(self.admin_view))),
         ]
 
         custom_urls += get_realtime_urls(self.admin_view)

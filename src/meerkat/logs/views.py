@@ -4,21 +4,13 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-from suit_dashboard.layout import Column, Grid, Row
-from suit_dashboard.views import DashboardView
+from suit_dashboard import Column, Grid, Row
 
+from ..views import HomeView
 from .boxes import (
     BoxLogsLinks, BoxLogsMostVisitedPages,
     BoxLogsMostVisitedPagesLegend, BoxLogsStatusCodes,
     BoxLogsStatusCodesByDate)
-
-
-class HomeView(DashboardView):
-    """Main view. Parent class and entry point for other views."""
-
-    template_name = 'meerkat/main.html'
-    crumbs = ({'name': _('Home'), 'url': 'admin:index'}, )
-    grid = Grid(Row(Column(BoxLogsLinks())))
 
 
 class LogsMenu(HomeView):

@@ -137,6 +137,8 @@ class IPInfo(models.Model):
         """
         data = ip_api_handler.get(ip)
         if data and any(v for v in data.values()):
+            if data.get('ip_address', None) is None or not data['ip_address']:
+                data['ip_address'] = ip
             return IPInfo.objects.get_or_create(**data)
         return None, False
 
@@ -615,20 +617,21 @@ class RequestLog(models.Model):
         print('Elapsed time: %s' % (end - start))
 
     @staticmethod
-    def get_ip_info():
+    def get_ip_info(only_update=False):
         param = 'client_ip_address'
-        unique_ips = set(RequestLog.objects.distinct(param).values_list(param, flat=True))  # noqa
-        checked_ips = set(IPInfoCheck.objects.values_list('ip_address', flat=True))  # noqa
-        not_checked_ips = unique_ips - checked_ips
-        print('Checking IP addresses information (%s)' % len(not_checked_ips))
-        check_progress_bar = ProgressBar(sys.stdout, len(not_checked_ips))
-        for count, ip in enumerate(not_checked_ips, 1):
-            try:
-                IPInfoCheck.check_ip(ip)
-            except RateExceededError:
-                print(' Rate exceeded')
-                break
-            check_progress_bar.update(count)
+        if not only_update:
+            unique_ips = set(RequestLog.objects.distinct(param).values_list(param, flat=True))  # noqa
+            checked_ips = set(IPInfoCheck.objects.values_list('ip_address', flat=True))  # noqa
+            not_checked_ips = unique_ips - checked_ips
+            print('Checking IP addresses information (%s)' % len(not_checked_ips))
+            check_progress_bar = ProgressBar(sys.stdout, len(not_checked_ips))
+            for count, ip in enumerate(not_checked_ips, 1):
+                try:
+                    IPInfoCheck.check_ip(ip)
+                except RateExceededError:
+                    print(' Rate exceeded')
+                    break
+                check_progress_bar.update(count)
         no_ip_info = RequestLog.objects.filter(ip_info=None)
         no_ip_info_ip = set(no_ip_info.distinct(param).values_list(param, flat=True))  # noqa
         checks = IPInfoCheck.objects.filter(ip_address__in=no_ip_info_ip)
