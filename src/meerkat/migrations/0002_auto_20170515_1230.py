@@ -35,6 +35,16 @@ class Migration(migrations.Migration):
             field=models.NullBooleanField(verbose_name='Proxy'),
         ),
         migrations.AlterField(
+            model_name='ipinfo',
+            name='asn',
+            field=models.CharField(blank=True, max_length=255, verbose_name='Autonomous System'),
+        ),
+        migrations.AlterField(
+            model_name='ipinfo',
+            name='isp',
+            field=models.CharField(blank=True, max_length=255, verbose_name='Internet Service Provider'),
+        ),
+        migrations.AlterField(
             model_name='ipinfocheck',
             name='ip_info',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ip_check', to='meerkat.IPInfo', verbose_name='IPInfo'),
