@@ -2,3 +2,5 @@ django-app-settings==0.2.4
 django-suit-dashboard==2.0.3
 python-dateutil==2.6.0
 requests==2.14.2
+archan==1.0.0
+dependenpy==3.0.0

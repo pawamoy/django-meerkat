@@ -1,0 +1,21 @@
+<div id="{{ widget.html_id }}">
+  <h2>{{ widget.name }}</h2>
+  <table class="table {{ widget.classes }}">
+    <thead>
+      <tr>
+        {% for h in widget.content.head %}
+          <td>{{ h }}</td>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in widget.content.body %}
+        <tr class="{{ b.classes }}">
+          {% for c in b.cells %}
+            <td>{{ c }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

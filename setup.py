@@ -69,7 +69,7 @@ setup(
     ],
     install_requires=[
         'django-suit-dashboard', 'python-dateutil', 'requests',
-        'django-app-settings'
+        'django-app-settings', 'archan', 'dependenpy',
     ],
     extras_require={
         # eg:
