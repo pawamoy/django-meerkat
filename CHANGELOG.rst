@@ -2,11 +2,14 @@
 Changelog
 =========
 
-0.2.3 (2017-05-??)
+0.2.3 (2017-05-18)
 ==================
 
 - Remove use of ``DJANGO_SHELL`` environment variable (to be done by user).
-- Implement autocomplete functions in ``RequestLog`` to populate some values.
+- Implement auto-complete functions in ``RequestLog`` to populate some values.
+- Improve admin displays.
+- Fix most visited pages box (+ huge performance improvement).
+- Move geolocation functions into ``utils.geolocation``.
 
 0.2.2 (2017-05-11)
 ==================
