@@ -14,10 +14,10 @@ from django.utils.timezone import make_naive
 
 from ..utils.time import ms_since_epoch
 from ..utils.url import (
-    url_is_asset, url_is_common_asset, url_is_false_negative, url_is_ignored,
-    url_is_old_project, url_is_project,
-    URL_TYPE, ASSET, OLD_ASSET, OLD_PROJECT, PROJECT,
-    SUSPICIOUS, IGNORED, COMMON_ASSET, FALSE_NEGATIVE, URL_TYPE_REVERSE)
+    ASSET, COMMON_ASSET, FALSE_NEGATIVE, IGNORED, OLD_ASSET, OLD_PROJECT,
+    PROJECT, SUSPICIOUS, URL_TYPE, URL_TYPE_REVERSE, url_is_asset,
+    url_is_common_asset, url_is_false_negative, url_is_ignored,
+    url_is_old_project, url_is_project)
 from .models import RequestLog
 
 

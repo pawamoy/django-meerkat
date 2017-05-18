@@ -5,8 +5,8 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
+from ..utils.geolocation import google_maps_geoloc_link
 from .models import IPInfo, IPInfoCheck, RequestLog
-from ..utils.ip_info import google_maps_geoloc_link
 
 
 class RequestLogAdmin(admin.ModelAdmin):

@@ -10,8 +10,8 @@ from data.
 from django.utils.translation import ugettext as _
 
 from ..utils.url import (
-    ASSET, COMMON_ASSET, OLD_ASSET, OLD_PROJECT,
-    PROJECT, SUSPICIOUS, FALSE_NEGATIVE)
+    ASSET, COMMON_ASSET, FALSE_NEGATIVE, OLD_ASSET, OLD_PROJECT,
+    PROJECT, SUSPICIOUS)
 from .data import STATUS_CODES
 from .stats import most_visited_pages_stats, status_codes_stats
 
