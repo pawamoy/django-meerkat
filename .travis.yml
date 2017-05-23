@@ -41,6 +41,8 @@ matrix:
   - {python: '3.5', env: TOX_ENV=checkstyle}
   - {python: '3.5', env: TOX_ENV=checkspell}
   - {python: '3.5', env: TOX_ENV=checklink}
+  - {python: '2.7'}
+  - {python: pypy}
   - {python: 3.7-dev}
 addons:
   apt:
