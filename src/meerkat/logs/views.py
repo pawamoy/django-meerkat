@@ -8,9 +8,8 @@ from suit_dashboard import Column, Grid, Row
 
 from ..views import HomeView
 from .boxes import (
-    BoxLogsLinks, BoxLogsMostVisitedPages,
-    BoxLogsMostVisitedPagesLegend, BoxLogsStatusCodes,
-    BoxLogsStatusCodesByDate)
+    BoxLogsLinks, BoxLogsMostVisitedPages, BoxLogsMostVisitedPagesLegend,
+    BoxLogsStatusCodes, BoxLogsStatusCodesByDate)
 
 
 class LogsMenu(HomeView):

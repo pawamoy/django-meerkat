@@ -2,7 +2,7 @@
 
 from django.utils.translation import ugettext as _
 
-from suit_dashboard import Grid, Row, Column
+from suit_dashboard import Column, Grid, Row
 
 from ..views import HomeView
 from .boxes import BoxArchan

@@ -13,8 +13,8 @@ from django.contrib.admin.sites import AdminSite
 
 from suit_dashboard import get_realtime_urls
 
-from .views import HomeView
 from .logs.urls import logs_urlpatterns
+from .views import HomeView
 
 
 class DashboardSite(AdminSite):

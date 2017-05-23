@@ -5,9 +5,8 @@ import re
 from django.apps import AppConfig
 
 import appsettings as aps
-
-from dependenpy import DSM
 from archan.dsm import DesignStructureMatrix
+from dependenpy import DSM
 
 from .utils.list import distinct
 

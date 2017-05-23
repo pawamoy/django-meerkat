@@ -2,7 +2,7 @@
 
 from django.utils.translation import ugettext as _
 
-from suit_dashboard import DashboardView, Grid, Row, Column
+from suit_dashboard import Column, DashboardView, Grid, Row
 
 
 class HomeView(DashboardView):

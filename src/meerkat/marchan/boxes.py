@@ -153,4 +153,3 @@ class BoxArchanLinks(Box):
     title = _('Architecture analysis')
     description = _('Analysis of the architecture strengths or weaknesses based on some criteria.')
     template = 'meerkat/archan/links.html'
-
