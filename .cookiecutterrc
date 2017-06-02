@@ -34,6 +34,8 @@ default_context:
     package_name:                    'meerkat'
     project_name:                    'Django Meerkat'
     project_short_description:       'Security audit tool for Django sites'
+    prospector:                      'yes'
+    pylama:                          'no'
     python_versions:                 '2.7,3.4,3.5,3.6,3.7-dev,pypy'
     pyup:                            'yes'
     release_date:                    '2016-06-08'
