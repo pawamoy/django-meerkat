@@ -1,5 +1,5 @@
 django-app-settings==0.2.5
-django-suit-dashboard==2.0.3
+django-suit-dashboard==2.0.4
 python-dateutil==2.6.0
 requests==2.14.2
 archan==1.0.0
