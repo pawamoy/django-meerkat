@@ -119,7 +119,7 @@ class AppSettings(aps.AppSettings):
     logs_file_path_regex = RegexSetting()
     logs_format_regex = RegexSetting()
     logs_top_dir = aps.StringSetting(default=None)
-    logs_start_daemon = aps.BoolSetting(default=False)
+    logs_start_daemon = aps.BooleanSetting(default=False)
     logs_url_whitelist = URLWhitelistSetting(default={
         'ASSET': {
             'PREFIXES': (
