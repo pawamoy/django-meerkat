@@ -48,6 +48,7 @@ setup(
         # http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: ISC License (ISCL)',
         'Operating System :: Unix',
         'Framework :: Django',
