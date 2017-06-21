@@ -5,8 +5,8 @@ import re
 from django.apps import AppConfig
 
 import appsettings as aps
-from archan.dsm import DesignStructureMatrix
-from dependenpy import DSM
+from archan.dsm import DSM as ADSM
+from dependenpy import DSM as DDSM
 
 from .utils.list import distinct
 
@@ -95,15 +95,15 @@ class ArchanPackagesSetting(aps.Setting):
 
     def transform(self):
         packages, _ = self.packages_groups()
-        return DSM(*packages)
+        return DDSM(*packages)
 
     def get_dsm(self, depth=None):
         packages, groups = self.packages_groups()
-        dsm = DSM(*packages)
+        dsm = DDSM(*packages)
         if depth is None:
             depth = 2 if len(packages) == 1 else 1
         keys, matrix = dsm.as_matrix(depth=depth)
-        return DesignStructureMatrix(groups, keys, matrix, *distinct(groups))
+        return ADSM(groups, keys, matrix)
 
 
 class AppSettings(aps.AppSettings):
