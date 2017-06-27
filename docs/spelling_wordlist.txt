@@ -29,3 +29,7 @@ geolocation
 Codacy
 Codecov
 ip
+Parrend
+Timothée
+Florent
+Mandel

@@ -4,11 +4,10 @@ import json
 
 from django.utils.translation import ugettext as _
 
-from archan.checker import Archan
-from archan.criterion import (
-    CODE_CLEAN, COMPLETE_MEDIATION, ECONOMY_OF_MECHANISM, LAYERED_ARCHITECTURE,
-    LEAST_COMMON_MECHANISM, LEAST_PRIVILEGES, OPEN_DESIGN,
-    SEPARATION_OF_PRIVILEGES, Criterion)
+from archan.checkers import (
+    CodeClean, CompleteMediation, EconomyOfMechanism, LayeredArchitecture,
+    LeastCommonMechanism, LeastPrivileges, OpenDesign,
+    SeparationOfPrivileges, Checker)
 from suit_dashboard import Box, Widget
 
 from ..apps import AppSettings
@@ -98,20 +97,17 @@ class BoxArchan(Box):
             }]
         }
 
-        message = _('The code is not public, therefore open design check will never pass.')
-        OPEN_DESIGN.check = lambda _: (False, message)
-        checked = [
-            COMPLETE_MEDIATION,
-            ECONOMY_OF_MECHANISM,
-            SEPARATION_OF_PRIVILEGES,
-            LEAST_PRIVILEGES,
-            LEAST_COMMON_MECHANISM,
-            LAYERED_ARCHITECTURE,
-            OPEN_DESIGN,
+        checkers = [
+            CompleteMediation(),
+            EconomyOfMechanism(),
+            SeparationOfPrivileges(),
+            LeastPrivileges(),
+            LeastCommonMechanism(),
+            LayeredArchitecture(),
+            OpenDesign(ok=False, ignore=True),
+            CodeClean(ignore=True)
         ]
-        ignored = [CODE_CLEAN]
-        ar = Archan(criteria=checked + ignored)
-        results = ar.check(dsm, criteria=checked)
+        results = [checker.run(dsm) for checker in checkers]
 
         return [
             Widget(
@@ -127,22 +123,22 @@ class BoxArchan(Box):
                         _('Criterion'), _('Result'), _('Description'), _('Message'), _('Hint')),
                     'body': [{
                         'cells': (
-                            c.title, {
-                                Criterion.PASSED: _('Passed'),
-                                Criterion.FAILED: _('Failed'),
-                                Criterion.NOT_IMPLEMENTED: _('Not implemented'),
-                                Criterion.IGNORED: _('Ignored')
-                            }.get(results[c.codename][0]),
-                            c.description,
-                            results[c.codename][1],
-                            c.hint),
+                            result.checker.name, {
+                                Checker.PASSED: _('Passed'),
+                                Checker.FAILED: _('Failed'),
+                                Checker.NOT_IMPLEMENTED: _('Not implemented'),
+                                Checker.IGNORED: _('Ignored')
+                            }.get(result.code),
+                            result.checker.description,
+                            result.messages,
+                            result.checker.hint),
                         'classes': {
-                            Criterion.PASSED: 'success',
-                            Criterion.FAILED: 'error',
-                            Criterion.NOT_IMPLEMENTED: 'default',
-                            Criterion.IGNORED: 'warning'
-                        }.get(results[c.codename][0])
-                    } for c in ar.criteria]
+                            Checker.PASSED: 'success',
+                            Checker.FAILED: 'error',
+                            Checker.NOT_IMPLEMENTED: 'default',
+                            Checker.IGNORED: 'warning'
+                        }.get(result.code)
+                    } for result in results]
                 },
                 template='meerkat/archan/evaluation.html',
                 classes='table-hover')

@@ -5,10 +5,9 @@ import re
 from django.apps import AppConfig
 
 import appsettings as aps
-from archan.dsm import DSM as ADSM
+from archan import DSM as ADSM
 from dependenpy import DSM as DDSM
-
-from .utils.list import distinct
+from dependenpy.helpers import guess_depth
 
 
 class MeerkatConfig(AppConfig):
@@ -101,9 +100,9 @@ class ArchanPackagesSetting(aps.Setting):
         packages, groups = self.packages_groups()
         dsm = DDSM(*packages)
         if depth is None:
-            depth = 2 if len(packages) == 1 else 1
-        keys, matrix = dsm.as_matrix(depth=depth)
-        return ADSM(groups, keys, matrix)
+            depth = guess_depth(packages)
+        matrix = dsm.as_matrix(depth=depth)
+        return ADSM(matrix.data, matrix.keys, groups)
 
 
 class AppSettings(aps.AppSettings):
