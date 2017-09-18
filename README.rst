@@ -13,20 +13,20 @@ Django Meerkat
 |gitter|
 
 
-.. |travis| image:: https://travis-ci.org/Pawamoy/django-meerkat.svg?branch=master
-    :target: https://travis-ci.org/Pawamoy/django-meerkat/
+.. |travis| image:: https://travis-ci.org/Genida/django-meerkat.svg?branch=master
+    :target: https://travis-ci.org/Genida/django-meerkat/
     :alt: Travis-CI Build Status
 
 .. |codacygrade| image:: https://api.codacy.com/project/badge/Grade/8d183046aad34b6a8ff081f1ff9b5156
-    :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
+    :target: https://www.codacy.com/app/genida/django-meerkat/dashboard
     :alt: Codacy Code Quality Status
 
 .. |codacycoverage| image:: https://api.codacy.com/project/badge/Coverage/8d183046aad34b6a8ff081f1ff9b5156
-    :target: https://www.codacy.com/app/pawamoy/django-meerkat/dashboard
+    :target: https://www.codacy.com/app/genida/django-meerkat/dashboard
     :alt: Codacy Code Coverage
 
-.. |pyup| image:: https://pyup.io/repos/github/Pawamoy/django-meerkat/shield.svg
-    :target: https://pyup.io/repos/github/Pawamoy/django-meerkat/
+.. |pyup| image:: https://pyup.io/repos/github/Genida/django-meerkat/shield.svg
+    :target: https://pyup.io/repos/github/Genida/django-meerkat/
     :alt: Updates
 
 .. |version| image:: https://img.shields.io/pypi/v/django-meerkat.svg?style=flat
@@ -37,9 +37,9 @@ Django Meerkat
     :target: https://pypi.python.org/pypi/django-meerkat/
     :alt: PyPI Wheel
 
-.. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
-    :target: https://gitter.im/Pawamoy/django-meerkat
-    :alt: Join the chat at https://gitter.im/Pawamoy/django-meerkat
+.. |gitter| image:: https://badges.gitter.im/Genida/django-meerkat.svg
+    :target: https://gitter.im/Genida/django-meerkat
+    :alt: Join the chat at https://gitter.im/Genida/django-meerkat
 
 
 
