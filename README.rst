@@ -32,11 +32,11 @@ Django Meerkat
     :alt: Updates
 
 .. |version| image:: https://img.shields.io/pypi/v/django-meerkat.svg?style=flat
-    :target: https://pypi.python.org/pypi/django-meerkat/
+    :target: https://pypi.org/project/django-meerkat/
     :alt: PyPI Package latest release
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/django-meerkat.svg?style=flat
-    :target: https://pypi.python.org/pypi/django-meerkat/
+    :target: https://pypi.org/project/django-meerkat/
     :alt: PyPI Wheel
 
 .. |gitter| image:: https://badges.gitter.im/Pawamoy/django-meerkat.svg
