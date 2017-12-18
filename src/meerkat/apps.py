@@ -17,45 +17,38 @@ class MeerkatConfig(AppConfig):
     def ready(self):
         from .models import RequestLog
         AppSettings.check()
-        if AppSettings.logs_start_daemon.get():
+        app_settings = AppSettings()
+        if app_settings.logs_start_daemon:
             RequestLog.start_daemon()
 
 
 class RegexSetting(aps.Setting):
-    def check(self):
-        value = self.get_raw()
-        if value == self.default:
-            return
+    def checker(self, name, value):
         re_type = type(re.compile(r'^$'))
         if not isinstance(value, (re_type, str)):
             raise ValueError('%s must be a a string or a compiled regex '
-                             '(use re.compile)' % self.name)
+                             '(use re.compile)' % name)
 
-    def transform(self):
-        value = self.get_raw()
+    def transform(self, value):
         if isinstance(value, str):
             value = re.compile(value)
         return value
 
 
 class URLWhitelistSetting(aps.Setting):
-    def check(self):
-        value = self.get_raw()
-        if value == self.default:
-            return
+    def checker(self, name, value):
         if not (isinstance(value, dict) and
                 all(isinstance(v, dict) for v in value.values())):
             raise ValueError('%s must be a dict with following items: %s ' % (
-                self.full_name, self.default.keys()))
+                name, self.default.keys()))
         s = {'PREFIXES', 'CONSTANTS'}
         for v in value.values():
             s_k = set(v.keys())
             if s_k - s or not s_k & s:
                 raise ValueError('%s values must have %s items' % (
-                        self.full_name, ', '.join(s)))
+                        name, ', '.join(s)))
 
-    def transform(self):
-        value = self.get_raw()
+    def transform(self, value):
         value_keys = value.keys()
         default_keys = self.default.keys()
         for key in default_keys:
@@ -65,10 +58,7 @@ class URLWhitelistSetting(aps.Setting):
 
 
 class ArchanPackagesSetting(aps.Setting):
-    def check(self):
-        value = self.get_raw()
-        if value == self.default:
-            return
+    def checker(self, name, value):
         default_keys = self.default.keys()
         if not (isinstance(value, dict) and
                 all(isinstance(v, (tuple, list)) and
@@ -78,13 +68,14 @@ class ArchanPackagesSetting(aps.Setting):
                     for v in value.values())):
             raise ValueError(
                 "%s must be a dict of 2-tuples ('name', [packages]) "
-                'with following keys: %s ' % (self.full_name, default_keys))
+                'with following keys: %s ' % (name, default_keys))
         for key in value.keys():
             if key not in default_keys:
-                raise ValueError('Unknow key %s in %s' % (key, self.full_name))
+                raise ValueError('Unknow key %s in %s' % (key, name))
 
-    def packages_groups(self):
-        value = self.get_raw()
+    def packages_groups(self, value=None):
+        if value is None:
+            value = self.raw_value
         packages, groups = [], []
         for k, (n, p) in value.items():
             packages.extend(p)
@@ -92,8 +83,8 @@ class ArchanPackagesSetting(aps.Setting):
                 groups.append(n)
         return packages, groups
 
-    def transform(self):
-        packages, _ = self.packages_groups()
+    def transform(self, value):
+        packages, _ = self.packages_groups(value)
         return DDSM(*packages)
 
     def get_dsm(self, depth=None):

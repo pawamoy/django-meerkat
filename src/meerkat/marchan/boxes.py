@@ -13,6 +13,9 @@ from suit_dashboard import Box, Widget
 from ..apps import AppSettings
 
 
+app_settings = AppSettings()
+
+
 class BoxArchan(Box):
     title = 'Design Structure Matrix'
     description = _(

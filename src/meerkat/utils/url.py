@@ -8,6 +8,8 @@ from django.core.urlresolvers import Resolver404, resolve
 
 from ..apps import AppSettings
 
+app_settings = AppSettings()
+
 
 def url_is_project(url, default='not_a_func'):
     """
@@ -83,7 +85,7 @@ URL_TYPE = {
 URL_TYPE_REVERSE = {v: k for k, v in URL_TYPE.items()}
 
 
-URL_WHITELIST = AppSettings.logs_url_whitelist.get()
+URL_WHITELIST = app_settings.logs_url_whitelist
 url_is_asset = url_is(URL_WHITELIST[URL_TYPE[ASSET]])
 url_is_old_asset = url_is(URL_WHITELIST[URL_TYPE[OLD_ASSET]])
 url_is_common_asset = url_is(URL_WHITELIST[URL_TYPE[COMMON_ASSET]])

@@ -17,6 +17,9 @@ from ..apps import AppSettings
 from ..utils.time import month_name_to_number
 
 
+app_settings = AppSettings()
+
+
 class GenericParser(object):
     """Generic parser. Customize it with regular expressions."""
 
@@ -188,9 +191,9 @@ class GunicornErrorLogParser(GenericParser):
 
 
 def get_nginx_parser():
-    file_path_regex = AppSettings.logs_file_path_regex.get()
-    log_format_regex = AppSettings.logs_format_regex.get()
-    top_dir = AppSettings.logs_top_dir.get()
+    file_path_regex = app_settings.logs_file_path_regex
+    log_format_regex = app_settings.logs_format_regex
+    top_dir = app_settings.logs_top_dir
 
     return NginXAccessLogParser(
         file_path_regex=file_path_regex if file_path_regex else None,
