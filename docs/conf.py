@@ -51,7 +51,7 @@ project = u'Django Meerkat'
 year = '2017'
 author = u'Timothee Mazzucotelli'
 copyright = '{0}, {1}'.format(year, author)
-version = release = u'0.2.4'
+version = release = u'0.2.5'
 
 pygments_style = 'trac'
 templates_path = ['.']
