@@ -2,6 +2,29 @@
 Changelog
 =========
 
+0.2.6 (2018-01-18)
+==================
+
+- Update pinned requirements.
+
+0.2.5 (2017-12-18)
+==================
+
+- Update to work with ``django-app-settings`` 0.3.0.
+
+0.2.4 (2017-10-04)
+==================
+
+- Add ``archan`` submodule.
+- Add Science/Reseach classifier.
+- Allow failure for style and spell on travis.
+- Drop support for Python 2.7 and PyPy (``dependenpy`` v3).
+- Fix boolean setting in apps.
+- Setup travis stages, rename tox env names.
+- Update for ``dependenpy`` 3.1.0.
+- Update for ``django-app-settings`` 0.2.5.
+- Update for ``django-suit-dashboard`` 2.0.5.
+
 0.2.3 (2017-05-18)
 ==================
 
