@@ -28,7 +28,7 @@ def read(*names, **kwargs):
 
 setup(
     name='django-meerkat',
-    version='0.2.5',
+    version='0.2.6',
     license='ISC',
     description='Security audit tool for Django sites',
     long_description='%s\n%s' % (
